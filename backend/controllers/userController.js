@@ -210,6 +210,80 @@ const cancelAppointment = async (req, res) => {
     }
 }
 
+// API to delete appointment
+const deleteAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body
+        const userId = req.userId
+
+        const appointmentData = await appointmentModel.findById(appointmentId)
+
+        if (!appointmentData) {
+            return res.json({ success: false, message: 'Appointment not found' })
+        }
+
+        if (appointmentData.userId.toString() !== userId.toString()) {
+            return res.json({ success: false, message: 'Unauthorized action' })
+        }
+
+        const { docId, slotDate, slotTime } = appointmentData
+
+        // Xoá slot khỏi doctor.slots_booked
+        const doctorData = await doctorModel.findById(docId)
+        let slots_booked = doctorData.slots_booked
+
+        if (slots_booked[slotDate]) {
+            slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+            if (slots_booked[slotDate].length === 0) {
+                delete slots_booked[slotDate]
+            }
+        }
+
+        // Cập nhật slot đã xoá
+        await doctorModel.findByIdAndUpdate(docId, { slots_booked })
+
+        // Xoá cuộc hẹn khỏi DB
+        await appointmentModel.findByIdAndDelete(appointmentId)
+
+        res.json({ success: true, message: 'Appointment deleted successfully' })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// API to send payment request
+
+// controllers/userController.js
+
+const requestPayment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body
+
+        const appointment = await appointmentModel.findById(appointmentId)
+
+        if (!appointment) {
+            return res.json({ success: false, message: 'Appointment not found' })
+        }
+
+        if (appointment.userId.toString() !== req.userId.toString()) {
+            return res.json({ success: false, message: 'Unauthorized' })
+        }
+
+        if (appointment.paymentStatus === 'confirmed') {
+            return res.json({ success: false, message: 'Payment already confirmed' })
+        }
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, { paymentStatus: 'pending' })
+
+        res.json({ success: true, message: 'Payment request sent to admin' })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
 
 
 export {
@@ -219,5 +293,7 @@ export {
     updateProfile,
     bookAppointment,
     listAppointment,
-    cancelAppointment
+    cancelAppointment, 
+    deleteAppointment,
+    requestPayment
 }

@@ -1,129 +1,157 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { AppContext } from '../context/AppContext'
-import { assets } from '../assets/assets'
-import RelatedDoctors from '../components/RelatedDoctors'
-import { toast } from 'react-toastify'
-import axios from 'axios'
+import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import { assets } from '../assets/assets';
+import RelatedDoctors from '../components/RelatedDoctors';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const Appointment = () => {
-    const { docId } = useParams()
-    const { doctors, currencySymbol, backendUrl, token, getDoctorsData } = useContext(AppContext)
-    const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+    const { docId } = useParams();
+    const navigate = useNavigate();
+    const { doctors, formatPrice, backendUrl, token, getDoctorsData } = useContext(AppContext);
 
-    const navigate = useNavigate()
+    const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-    const [docInfo, setDocInfo] = useState(null)
-    const [docSlots, setDocSlots] = useState([])
-    const [slotIndex, setSlotIndex] = useState(0)
-    const [slotTime, setSlotTime] = useState('')
+    const [docInfo, setDocInfo] = useState(null);
+    const [docSlots, setDocSlots] = useState([]);
+    const [slotIndex, setSlotIndex] = useState(0);
+    const [slotTime, setSlotTime] = useState('');
 
+    // Lấy thông tin bác sĩ từ danh sách đã tải
     const fetchDocInfo = () => {
-        const info = doctors.find(doc => doc._id === docId)
-        setDocInfo(info)
-    }
+        const info = doctors.find(doc => doc._id === docId);
+        setDocInfo(info);
+    };
 
-    const getAvailableSlots = () => {
-        const today = new Date()
-        const allSlots = []
+    // Tạo lịch mặc định (10h-21h mỗi 30 phút)
+    const getAvailableSlotsFallback = () => {
+        const today = new Date();
+        const allSlots = [];
 
         for (let i = 0; i < 7; i++) {
-            let currentDate = new Date(today)
-            currentDate.setDate(today.getDate() + i)
+            const current = new Date(today);
+            current.setDate(today.getDate() + i);
 
-            let endTime = new Date(currentDate)
-            endTime.setHours(21, 0, 0, 0)
+            let startTime = new Date(current);
+            let endTime = new Date(current);
 
             if (i === 0) {
-                currentDate.setHours(currentDate.getHours() >= 10 ? currentDate.getHours() + 1 : 10)
-                currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0)
+                startTime.setHours(Math.max(10, today.getHours() + 1));
+                startTime.setMinutes(today.getMinutes() > 30 ? 30 : 0);
             } else {
-                currentDate.setHours(10)
-                currentDate.setMinutes(0)
+                startTime.setHours(10, 0, 0, 0);
             }
 
-            const timeSlots = []
-            while (currentDate < endTime) {
+            endTime.setHours(21, 0, 0, 0);
 
-                let formattedTime = currentDate.toLocaleTimeString([], {
+            const timeSlots = [];
+            while (startTime < endTime) {
+                const formatted = startTime.toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false
-                })
+                });
 
-                let day = currentDate.getDate()
-                let month = currentDate.getMonth() + 1
-                let year = currentDate.getFullYear()
+                const slotDate = `${startTime.getDate()}_${startTime.getMonth() + 1}_${startTime.getFullYear()}`;
+                const isAvailable = !(docInfo.slots_booked?.[slotDate]?.includes(formatted));
 
-                const slotDate = day + "_" + month + "_" + year
-                const slotTime = formattedTime
-
-                const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true
-
-                if (isSlotAvailable) {
-                    timeSlots.push({
-                        datetime: new Date(currentDate),
-                        time: formattedTime
-                    })
+                if (isAvailable) {
+                    timeSlots.push({ datetime: new Date(startTime), time: formatted });
                 }
 
-                currentDate.setMinutes(currentDate.getMinutes() + 30)
+                startTime.setMinutes(startTime.getMinutes() + 30);
             }
 
-            allSlots.push(timeSlots)
+            allSlots.push(timeSlots);
         }
 
-        setDocSlots(allSlots)
-    }
+        setDocSlots(allSlots);
+    };
 
+    // Tạo lịch từ workingSchedule của bác sĩ
+    const getAvailableSlotsFromSchedule = () => {
+        const schedule = docInfo.workingSchedule; // { "YYYY-MM-DD": ["09:00", "10:00", ...] }
+        const today = new Date();
+        const allSlots = [];
+
+        for (let i = 0; i < 7; i++) {
+            const current = new Date(today);
+            current.setDate(today.getDate() + i);
+            const dateKey = current.toISOString().split("T")[0];
+
+            const timeList = schedule?.[dateKey] || [];
+            const daySlots = [];
+
+            timeList.forEach(timeStr => {
+                const [hour, minute] = timeStr.split(":").map(Number);
+                const slotDateTime = new Date(current);
+                slotDateTime.setHours(hour, minute, 0, 0);
+
+                const slotDate = `${slotDateTime.getDate()}_${slotDateTime.getMonth() + 1}_${slotDateTime.getFullYear()}`;
+                const isAvailable = !(docInfo.slots_booked?.[slotDate]?.includes(timeStr));
+
+                if (isAvailable) {
+                    daySlots.push({ datetime: slotDateTime, time: timeStr });
+                }
+            });
+
+            allSlots.push(daySlots);
+        }
+
+        setDocSlots(allSlots);
+    };
 
     const bookAppointment = async () => {
-
-
         if (!token) {
-            toast.warn('Login to book appointment')
-            return navigate('/login')
+            toast.warn('Bạn cần đăng nhập để đặt lịch!');
+            return navigate('/login');
         }
 
         try {
+            const date = docSlots[slotIndex][0].datetime;
+            const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
 
-            const date = docSlots[slotIndex][0].datetime
+            const { data } = await axios.post(
+                `${backendUrl}/api/user/book-appointment`,
+                { docId, slotDate, slotTime },
+                { headers: { token } }
+            );
 
-            let day = date.getDate()
-            let month = date.getMonth() + 1
-            let year = date.getFullYear()
-
-            const slotDate = day + "_" + month + "_" + year
-
-            const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
             if (data.success) {
-                toast.success(data.message)
-                getDoctorsData()
-                navigate('/my-appointments')
+                toast.success(data.message);
+                getDoctorsData();
+                navigate('/my-appointments');
             } else {
-
-                toast.error(data.message)
+                toast.error(data.message);
             }
-
         } catch (error) {
-            console.log(error)
-            toast.error(error.message)
+            console.log(error);
+            toast.error(error.message);
         }
+    };
 
-    }
-
+    // Lấy thông tin bác sĩ
     useEffect(() => {
-        fetchDocInfo()
-    }, [doctors, docId])
+        fetchDocInfo();
+    }, [doctors, docId]);
 
+    // Sau khi có docInfo thì tạo lịch
     useEffect(() => {
         if (docInfo) {
-            getAvailableSlots()
+            const hasSchedule = docInfo.workingSchedule && Object.keys(docInfo.workingSchedule).length > 0;
+
+            if (hasSchedule) {
+                getAvailableSlotsFromSchedule();
+            } else {
+                getAvailableSlotsFallback();
+            }
         }
-    }, [docInfo])
+    }, [docInfo]);
 
     return docInfo && (
         <div>
+            {/* Doctor details */}
             {/* Doctor details */}
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div>
@@ -147,7 +175,8 @@ const Appointment = () => {
                         <p className='text-sm text-gray-500 max-w-[700px] mt-1'>{docInfo.about}</p>
                     </div>
                     <p className='text-gray-500 font-medium mt-4'>
-                        Appointment fee: <span className='text-gray-600'>{currencySymbol}{docInfo.fees}</span>
+                        {/* Sử dụng hàm formatPrice để hiển thị giá chuẩn */}
+                        Appointment fee: <span className='text-gray-600'>{formatPrice(docInfo.fees)}</span>
                     </p>
                 </div>
             </div>
@@ -162,13 +191,13 @@ const Appointment = () => {
                         docSlots.length > 0 && docSlots.map((item, index) => (
                             item.length > 0 && (
                                 <div
+                                    key={index}
                                     onClick={() => {
-                                        setSlotIndex(index)
-                                        setSlotTime('')
+                                        setSlotIndex(index);
+                                        setSlotTime('');
                                     }}
                                     className={`text-center py-6 min-w-[64px] flex-shrink-0 rounded-full cursor-pointer 
                                         ${slotIndex === index ? 'bg-primary text-white' : 'border border-gray-200'}`}
-                                    key={index}
                                 >
                                     <p>{daysOfWeek[item[0].datetime.getDay()]}</p>
                                     <p>{item[0].datetime.getDate()}</p>
@@ -181,7 +210,7 @@ const Appointment = () => {
                 {/* Time slots */}
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-4">
                     {
-                        docSlots.length > 0 && docSlots[slotIndex] && docSlots[slotIndex].map((item, index) => (
+                        docSlots.length > 0 && docSlots[slotIndex]?.map((item, index) => (
                             <button
                                 key={index}
                                 onClick={() => setSlotTime(item.time)}
@@ -200,13 +229,15 @@ const Appointment = () => {
                         Selected time: <span className='font-medium'>{slotTime}</span>
                     </p>
                 )}
-                <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6'>Book an appointment</button>
+                <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6'>
+                    Book an appointment
+                </button>
             </div>
 
-            {/** Listing Realated Doctors */}
+            {/* Related Doctors */}
             <RelatedDoctors docId={docId} speciality={docInfo.speciality} />
         </div>
-    )
-}
+    );
+};
 
-export default Appointment
+export default Appointment;

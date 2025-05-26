@@ -11,8 +11,16 @@ const appointmentSchema = new mongoose.Schema({
     date: { type: Number, required: true },
     cancelled: { type: Boolean, default: false },
     payment: { type: Boolean, default: false },
-    isCompleted: { type: Boolean, default: false }
-})
-const appointmentModel = mongoose.models.appointment || mongoose.model('appointment', appointmentSchema)
+    isCompleted: { type: Boolean, default: false },
 
-export default appointmentModel
+    // ✅ Trạng thái thanh toán
+    paymentStatus: {
+        type: String,
+        enum: ['none', 'pending', 'confirmed'],
+        default: 'none'
+    }
+})
+
+// ✅ Tạo model và export mặc định (default)
+const appointmentModel = mongoose.models.appointment || mongoose.model('appointment', appointmentSchema);
+export default appointmentModel;

@@ -21,12 +21,12 @@ const Doctors = () => {
     }, [doctors, speciality])
 
     const categories = [
-        'General physician',
-        'Gynecologist',
-        'Dermatologist',
-        'Pediatricians',
-        'Neurologist',
-        'Gastroenterologist'
+        'Đa Khoa',
+        'Khoa Phụ Sản',
+        'Khoa Da Liễu',
+        'Khoa Nhi',
+        'Khoa Thần Kinh',
+        'Khoa Tiêu Hóa'
     ]
 
     return (

@@ -15,7 +15,8 @@ const __dirname = path.dirname(__filename)
 dotenv.config()
 const app = express()
 const port = process.env.PORT || 4000
-connectDB()
+
+// ✅ Chỉ gọi sau khi kết nối DB thành công
 connectCloudinary()
 
 // middlewares
@@ -32,16 +33,19 @@ app.get('/test-upload', (req, res) => {
 
 // api endpoint
 app.use('/api/admin', adminRouter)
-app.use('/api/doctor',doctorRouter)
+app.use('/api/doctor', doctorRouter)
 app.use('/api/user', userRouter)
 // localhost:4000/api/admin/add-doctor
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send('Api working')
 })
 
+// ✅ Gọi connectDB chỉ một lần
 connectDB().then(() => {
     app.listen(port, () => {
         console.log(`Server is running on port ${port}`)
     })
+}).catch(err => {
+    console.error("❌ Failed to connect DB:", err)
 })

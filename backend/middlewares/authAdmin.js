@@ -3,22 +3,27 @@ import jwt from 'jsonwebtoken'
 // admin authentication middleware
 const authAdmin = async (req, res, next) => {
     try {
-        const { atoken } = req.headers
-        if (!atoken) {
-            return res.json({ success: false, message: "Not Authorized Login Again" })
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.json({ success: false, message: "Not Authorized, login again" });
         }
-        
-        const token_decode = jwt.verify(atoken, process.env.JWT_SECRET)
-        if (token_decode) {
-            next()
+
+        const token = authHeader.split(" ")[1];
+
+        const token_decode = jwt.verify(token, process.env.JWT_SECRET);
+
+        // ✅ Có thể kiểm tra thêm nếu là admin:
+        if (token_decode && token_decode.isAdmin) {
+            next();
         } else {
-            res.json({ success: false, message: "Invalid token" })
+            return res.json({ success: false, message: "Access denied: Admin only" });
         }
 
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.error("authAdmin error:", error.message);
+        res.json({ success: false, message: "Invalid or expired token" });
     }
 }
 
-export default authAdmin
+export default authAdmin;

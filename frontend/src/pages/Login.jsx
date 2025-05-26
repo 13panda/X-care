@@ -5,11 +5,10 @@ import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
-
-    const {backendUrl, token, setToken} = useContext(AppContext)
+    const { backendUrl, token, setToken } = useContext(AppContext)
     const navigate = useNavigate()
 
-    const [state, setState] = useState('Sign Up')
+    const [state, setState] = useState('Đăng ký')
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -18,59 +17,52 @@ const Login = () => {
     const onSubmitHandler = async (event) => {
         event.preventDefault()
 
-        // Xử lý logic ở đây (API call, redirect, v.v.)
-
         try {
-
-            if (state === 'Sign Up') {
-                
-                const {data} = await axios.post(backendUrl + '/api/user/register', {name, password, email})
+            if (state === 'Đăng ký') {
+                const { data } = await axios.post(backendUrl + '/api/user/register', { name, password, email })
                 if (data.success) {
-                    localStorage.setItem('token',data.token)
+                    localStorage.setItem('token', data.token)
                     setToken(data.token)
-                }else{
+                } else {
                     toast.error(data.message)
                 }
-            }else{
-
-                const {data} = await axios.post(backendUrl + '/api/user/login', {password, email})
+            } else {
+                const { data } = await axios.post(backendUrl + '/api/user/login', { password, email })
                 if (data.success) {
-                    localStorage.setItem('token',data.token)
+                    localStorage.setItem('token', data.token)
                     setToken(data.token)
-                }else{
+                } else {
                     toast.error(data.message)
                 }
             }
-            
         } catch (error) {
-            toast.error(error.message)
+            toast.error('Đã xảy ra lỗi: ' + error.message)
         }
-
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         if (token) {
             navigate('/')
         }
-    },[token])
+    }, [token])
 
     return (
         <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center justify-center px-4">
             <div className="flex flex-col gap-4 w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
                 <h2 className="text-3xl font-bold text-gray-800">
-                    {state === 'Sign Up' ? 'Create Account' : 'Login'}
+                    {state === 'Đăng ký' ? 'Tạo tài khoản' : 'Đăng nhập'}
                 </h2>
                 <p className="text-gray-500">
-                    Please {state === 'Sign Up' ? 'sign up' : 'log in'} to book appointment
+                    Vui lòng {state === 'Đăng ký' ? 'đăng ký' : 'đăng nhập'} để đặt lịch hẹn
                 </p>
 
-                {state === 'Sign Up' && (
+                {state === 'Đăng ký' && (
                     <div>
-                        <label className="text-sm font-medium text-gray-600">Full Name</label>
+                        <label className="text-sm font-medium text-gray-600">Họ và tên</label>
                         <input
                             type="text"
                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Full Name"
+                            placeholder="Nhập họ và tên"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
@@ -83,7 +75,7 @@ const Login = () => {
                     <input
                         type="email"
                         className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Email"
+                        placeholder="Nhập email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -91,11 +83,11 @@ const Login = () => {
                 </div>
 
                 <div>
-                    <label className="text-sm font-medium text-gray-600">Password</label>
+                    <label className="text-sm font-medium text-gray-600">Mật khẩu</label>
                     <input
                         type="password"
                         className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Password"
+                        placeholder="Nhập mật khẩu"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -106,28 +98,27 @@ const Login = () => {
                     type="submit"
                     className="bg-primary hover:bg-primary-dark transition text-white w-full py-2 rounded-md text-base font-medium"
                 >
-                    {state === 'Sign Up' ? 'Create Account' : 'Login'}
+                    {state === 'Đăng ký' ? 'Tạo tài khoản' : 'Đăng nhập'}
                 </button>
 
                 <p className="text-sm text-gray-500">
-                    {state === 'Sign Up' ? (
+                    {state === 'Đăng ký' ? (
                         <>
-                            Already have an account?{' '}
+                            Đã có tài khoản?{' '}
                             <span
-                                onClick={() => setState('Login')}
-                                className="text-primary hover:underline cursor-pointer"
-                            >
-                                Login here
+                                onClick={() => setState('Đăng nhập')}
+                                className="text-primary hover:underline cursor-pointer">
+                                Đăng nhập 
                             </span>
                         </>
                     ) : (
                         <>
-                            Don't have an account?{' '}
+                            Chưa có tài khoản?{' '}
                             <span
-                                onClick={() => setState('Sign Up')}
+                                onClick={() => setState('Đăng ký')}
                                 className="text-primary hover:underline cursor-pointer"
                             >
-                                Click here
+                                Đăng ký
                             </span>
                         </>
                     )}

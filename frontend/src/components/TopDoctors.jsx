@@ -9,8 +9,8 @@ const TopDoctors = () => {
     return (
         <div className='flex flex-col items-center gap-4 my-16 text-gray-900 md:mx-10'>
             {/* Tiêu đề */}
-            <h1 className='text-3xl font-semibold text-center'>Top Doctors to Book</h1>
-            <p className='sm:w-1/3 text-center text-gray-500 text-sm'>Simply browse through our extensive list of trusted doctors</p>
+            <h1 className='text-3xl font-semibold text-center'>Các bác sĩ hàng đầu</h1>
+            <p className='sm:w-1/3 text-center text-gray-500 text-sm whitespace-nowrap'>Khám phá danh sách bác sĩ chất lượng, được nhiều người tin tưởng.</p>
 
             {/* Grid hiển thị doctor */}
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-6 px-4 sm:px-0'>
@@ -24,7 +24,7 @@ const TopDoctors = () => {
                         <div className='p-4'>
                             <div className='flex items-center gap-2 text-sm text-green-500 mb-1'>
                                 <span className='w-2 h-2 bg-green-500 rounded-full'></span>
-                                <span>Available</span>
+                                <span>Sẵn sàng</span>
                             </div>
                             <p className='text-gray-900 text-lg font-semibold'>{item.name}</p>
                             <p className='text-gray-600 text-sm'>{item.speciality}</p>

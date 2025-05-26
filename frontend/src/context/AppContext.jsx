@@ -19,7 +19,7 @@ const AppContextProvider = (props) => {
 
         try {
 
-            const { data } = await axios.get(backendUrl + '/api/doctor/list')
+            const { data } = await axios.get(backendUrl + '/api/doctor/list', { headers: { token } })
             if (data.success) {
                 setDoctors(data.doctors)
             } else {
@@ -47,13 +47,20 @@ const AppContextProvider = (props) => {
         }
     }
 
+    // Hàm format giá tiền chuẩn VNĐ
+    const formatPrice = (price) => {
+        if (!price && price !== 0) return '';
+        return price.toLocaleString('vi-VN') + ' VND';
+    };
+
     const value = {
         doctors, getDoctorsData,
         currencySymbol,
         token, setToken,
         backendUrl,
         userData, setUserData,
-        loadUserProfileData
+        loadUserProfileData,
+        formatPrice
     }
 
     useEffect(() => {

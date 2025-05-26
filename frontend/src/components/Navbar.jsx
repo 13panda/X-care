@@ -78,13 +78,13 @@ const Navbar = () => {
                         <div className='absolute right-0 pt-3 z-20 hidden group-hover:block'>
                             <div className="bg-white rounded-xl shadow-lg py-3 px-4 min-w-[160px] space-y-2 text-sm text-gray-600 font-medium">
                                 <p onClick={() => navigate('/my-profile')} className="hover:text-black cursor-pointer">
-                                    My Profile
+                                    Hồ sơ cá nhân
                                 </p>
                                 <p onClick={() => navigate('/my-appointments')} className="hover:text-black cursor-pointer">
-                                    My Appointments
+                                    Lịch hẹn
                                 </p>
                                 <p onClick={() => logout()} className="hover:text-red-500 cursor-pointer">
-                                    Logout
+                                    Đăng xuất
                                 </p>
                             </div>
                         </div>
@@ -93,7 +93,7 @@ const Navbar = () => {
                     <button
                         onClick={() => navigate('/login')}
                         className='bg-primary text-white px-6 py-2.5 rounded-full font-semibold hover:brightness-110 transition'>
-                        Create Account
+                        Đăng ký ngay
                     </button>
                 )}
 
