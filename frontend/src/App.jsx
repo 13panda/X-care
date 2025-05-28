@@ -12,6 +12,7 @@ import Footer from './components/Footer'
 import Doctor from './pages/Doctors'
 import Appointment from './pages/Appointment'
 import { ToastContainer, toast } from 'react-toastify';
+import AppointmentHistory from './pages/AppointmentHistory'
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path='/my-profile' element={<MyProfile />}/>
         <Route path='/my-appointments' element={<MyAppointments />}/>
         <Route path='/appointment/:docId' element={<Appointment/>}/>
+        <Route path='/appointment-history' element={<AppointmentHistory/>}/>
       </Routes>
       <Footer/>
     </div>

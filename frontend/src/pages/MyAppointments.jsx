@@ -46,8 +46,10 @@ const MyAppointments = () => {
         try {
             const { data } = await axios.get(backendUrl + '/api/user/appointments', { headers: { token } })
             if (data.success) {
-                setAppointments(data.appointments.reverse())
-                console.log(data.appointments)
+                // Giữ lại các lịch chưa thanh toán hoặc đang chờ
+                const filtered = data.appointments.filter(item => item.paymentStatus !== 'confirmed');
+                setAppointments(filtered.reverse());
+                console.log(filtered);
             }
         } catch (error) {
             console.log(error)
@@ -104,7 +106,7 @@ const MyAppointments = () => {
             )
             if (data.success) {
                 toast.success(data.message)
-                getUserAppointments()
+                getUserAppointments() // cập nhật danh sách sau thanh toán
             } else {
                 toast.error(data.message)
             }
@@ -230,7 +232,7 @@ const MyAppointments = () => {
                             {item.cancelled && (
                                 <div className="flex flex-col gap-2">
                                     <button className='sm:min-w-48 py-2 border rounded text-red-500 bg-red-50 cursor-default'>
-                                        Đã hủy 
+                                        Đã hủy
                                     </button>
                                     <button
                                         onClick={() => deleteAppointment(item._id)}

@@ -121,12 +121,12 @@ const AddDoctor = () => {
                         <div className='flex flex-col gap-1'>
                             <p>Chuyên khoa</p>
                             <select onChange={(e) => setSpeciality(e.target.value)} value={speciality} className='p-2 border rounded-md shadow-sm' required>
-                                <option value="Generalphysician">Đa Khoa</option>
-                                <option value="Gynecologist">Phụ Sản</option>
-                                <option value="Dermatologist">Da Liễu</option>
-                                <option value="Pediatricians">Nhi</option>
-                                <option value="Neurologist">Thần Kinh</option>
-                                <option value="Gastroenterologist">Tiêu Hóa</option>
+                                <option value="Đa Khoa">Đa Khoa</option>
+                                <option value="Khoa Phụ Sản">Phụ Sản</option>
+                                <option value="Khoa Da Liễu">Da Liễu</option>
+                                <option value="Khoa Nhi">Nhi</option>
+                                <option value="Khoa Thần Kinh">Thần Kinh</option>
+                                <option value="Khoa Tiêu Hóa">Tiêu Hóa</option>
                             </select>
                         </div>
 

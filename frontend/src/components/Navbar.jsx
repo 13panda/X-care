@@ -83,6 +83,9 @@ const Navbar = () => {
                                 <p onClick={() => navigate('/my-appointments')} className="hover:text-black cursor-pointer">
                                     Lịch hẹn
                                 </p>
+                                <p onClick={() => navigate('/appointment-history')} className="hover:text-black cursor-pointer">
+                                    Lịch sử cuộc hẹn
+                                </p>
                                 <p onClick={() => logout()} className="hover:text-red-500 cursor-pointer">
                                     Đăng xuất
                                 </p>

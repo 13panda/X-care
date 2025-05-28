@@ -60,7 +60,7 @@ const MyProfile = () => {
                 }
             </div>
 
-            {/* Name */}
+            {/* Tên người dùng */}
             <div className="text-center">
                 {
                     isEdit ? (
@@ -78,9 +78,9 @@ const MyProfile = () => {
 
             <hr className="border-t border-gray-300" />
 
-            {/* Contact Info */}
+            {/* Thông tin liên hệ */}
             <div>
-                <h3 className="text-neutral-600 font-semibold mb-3"> Contact Information</h3>
+                <h3 className="text-neutral-600 font-semibold mb-3">Thông tin liên hệ</h3>
                 <div className="space-y-3">
                     <div className="flex gap-4">
                         <span className="font-medium w-24">Email:</span>
@@ -88,7 +88,7 @@ const MyProfile = () => {
                     </div>
 
                     <div className="flex gap-4">
-                        <span className="font-medium w-24">Phone:</span>
+                        <span className="font-medium w-24">SĐT:</span>
                         {isEdit ? (
                             <input
                                 className="bg-gray-100 border px-2 rounded w-52"
@@ -102,12 +102,12 @@ const MyProfile = () => {
                     </div>
 
                     <div className="flex gap-4">
-                        <span className="font-medium w-24">Address:</span>
+                        <span className="font-medium w-24">Địa chỉ:</span>
                         {isEdit ? (
                             <div className="flex flex-col gap-1">
                                 <input
                                     className="bg-gray-50 border px-2 rounded"
-                                    placeholder="Line 1"
+                                    placeholder="Địa chỉ dòng 1"
                                     value={userData?.address?.line1 || ''}
                                     onChange={e => setUserData(prev => ({
                                         ...prev,
@@ -119,7 +119,7 @@ const MyProfile = () => {
                                 />
                                 <input
                                     className="bg-gray-50 border px-2 rounded"
-                                    placeholder="Line 2"
+                                    placeholder="Địa chỉ dòng 2"
                                     value={userData?.address?.line2 || ''}
                                     onChange={e => setUserData(prev => ({
                                         ...prev,
@@ -140,20 +140,20 @@ const MyProfile = () => {
                 </div>
             </div>
 
-            {/* Basic Info */}
+            {/* Thông tin cơ bản */}
             <div>
-                <h3 className="text-neutral-600 font-semibold mt-4 mb-3">Basic Information</h3>
+                <h3 className="text-neutral-600 font-semibold mt-4 mb-3">Thông tin cơ bản</h3>
                 <div className="space-y-3">
                     <div className="flex gap-4">
-                        <span className="font-medium w-24">Gender:</span>
+                        <span className="font-medium w-24">Giới tính:</span>
                         {isEdit ? (
                             <select
                                 className="bg-gray-100 border rounded px-2"
                                 onChange={(e) => setUserData(prev => ({ ...prev, gender: e.target.value }))}
                                 value={userData?.gender || ''}
                             >
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="Male">Nam</option>
+                                <option value="Female">Nữ</option>
                             </select>
                         ) : (
                             <span className="text-gray-600">{userData?.gender}</span>
@@ -161,7 +161,7 @@ const MyProfile = () => {
                     </div>
 
                     <div className="flex gap-4">
-                        <span className="font-medium w-24">Birthday:</span>
+                        <span className="font-medium w-24">Ngày sinh:</span>
                         {isEdit ? (
                             <input
                                 className="bg-gray-100 border rounded px-2"
@@ -176,7 +176,7 @@ const MyProfile = () => {
                 </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Nút hành động */}
             <div className="text-center mt-6">
                 {
                     isEdit ? (
@@ -184,14 +184,14 @@ const MyProfile = () => {
                             onClick={updateUserProfileData}
                             className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
                         >
-                            Save Information
+                            Lưu thông tin
                         </button>
                     ) : (
                         <button
                             onClick={() => setIsEdit(true)}
                             className="border border-blue-600 text-blue-600 px-6 py-2 rounded-full hover:bg-blue-600 hover:text-white transition"
                         >
-                            Edit
+                            Chỉnh sửa
                         </button>
                     )
                 }

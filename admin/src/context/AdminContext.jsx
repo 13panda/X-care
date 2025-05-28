@@ -32,6 +32,22 @@ const AdminContextProvider = (props) => {
         }
     };
 
+
+    // Lấy danh sách người dùng 
+    const getAllUsers = async () => {
+        try {
+            const res = await axios.get(`${backendUrl}/api/admin/users`, {
+                headers: { Authorization: `Bearer ${aToken}` }
+            });
+            return res.data; // 🔥 PHẢI có dòng này để component nhận được
+        } catch (err) {
+            console.error('Lỗi getAllUsers:', err.response?.data || err.message);
+            return { success: false };
+        }
+    };
+
+
+
     // Thay đổi trạng thái availability bác sĩ (POST /change-availability)
     const changeAvailability = async (docId) => {
         try {
@@ -59,8 +75,13 @@ const AdminContextProvider = (props) => {
             const { data } = await axios.get(`${backendUrl}/api/admin/appointments`, {
                 headers: { Authorization: `Bearer ${aToken}` }
             });
+
             if (data.success) {
-                setAppointments(data.appointments);
+                // Lọc ra các cuộc hẹn có cả userData và docData hợp lệ
+                const validAppointments = data.appointments.filter(item =>
+                    item.userData && item.userData.name && item.docData && item.docData.name
+                );
+                setAppointments(validAppointments);
             } else {
                 toast.error(data.message);
             }
@@ -151,6 +172,28 @@ const AdminContextProvider = (props) => {
         }
     };
 
+    // Lấy chi tiết user(GET /user/:id)
+    const getUserDetails = async (userId) => {
+        try {
+            if (!aToken) {
+                toast.error('Token is missing!');
+                return null;
+            }
+            const { data } = await axios.get(`${backendUrl}/api/admin/users/${userId}`, {
+                headers: { Authorization: `Bearer ${aToken}` }
+            });
+            if (data.success) {
+                return data;
+            } else {
+                toast.error(data.message);
+                return null;
+            }
+        } catch (error) {
+            toast.error(error.message);
+            return null;
+        }
+    };
+
     // Xóa bác sĩ (DELETE /doctor-list/:id)
     const deleteDoctor = async (doctorId) => {
         try {
@@ -168,15 +211,54 @@ const AdminContextProvider = (props) => {
         }
     };
 
-    // Cập nhật bác sĩ (PUT /doctor-list/:id)
-    const adminUpdateDoctor = async (doctorId, updatedData) => {
+    // Xóa user (DELETE /user/:id)
+    const deleteUser = async (userId) => {
         try {
-            const { data } = await axios.put(`${backendUrl}/api/admin/doctor-list/${doctorId}`, updatedData, {
-                headers: {
-                    Authorization: `Bearer ${aToken}`,
-                    'Content-Type': 'application/json',
-                }
+            const { data } = await axios.delete(`${backendUrl}/api/admin/users/${userId}`, {
+                headers: { Authorization: `Bearer ${aToken}` }
             });
+            if (data.message === 'Xóa người dùng thành công') {
+                toast.success(data.message);
+                getAllUsers();
+            } else {
+                toast.error(data.message || 'Không thể xóa người dùng');
+            }
+        } catch (error) {
+            toast.error(error.message || 'Lỗi server khi xóa người dùng');
+        }
+    };
+
+    // Cập nhật bác sĩ (PUT /doctor-list/:id)
+    const updateDoctor = async (doctorId, updatedData) => {
+        try {
+            const formData = new FormData();
+
+            // Nếu có ảnh là file, thêm vào formData
+            if (updatedData.image && updatedData.image instanceof File) {
+                formData.append('image', updatedData.image);
+                delete updatedData.image;
+            }
+
+            // Thêm các trường khác
+            for (const key in updatedData) {
+                if (key === 'address' && typeof updatedData[key] === 'object') {
+                    formData.append(key, JSON.stringify(updatedData[key]));
+                } else {
+                    formData.append(key, updatedData[key]);
+                }
+            }
+
+            const { data } = await axios.post( 
+                `${backendUrl}/api/admin/doctor-list/${doctorId}`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${aToken}`,
+                        'Content-Type': 'multipart/form-data',
+                    }
+                }
+            );
+
             if (data.message === 'Cập nhật thông tin bác sĩ thành công') {
                 toast.success(data.message);
                 getAllDoctors();
@@ -187,6 +269,35 @@ const AdminContextProvider = (props) => {
             toast.error(error.message || 'Lỗi server khi cập nhật bác sĩ');
         }
     };
+
+
+    // Cập nhật user (PUT /users/:id)
+    const updateUser = async (userId, updatedData) => {
+        try {
+            const { data } = await axios.put(
+                `${backendUrl}/api/admin/users/${userId}`,
+                updatedData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${aToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+
+            if (data.success) {
+                return true;
+            } else {
+                toast.error(data.message || 'Cập nhật thất bại');
+                return false;
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Lỗi server khi cập nhật người dùng');
+            return false;
+        }
+    };
+
+
 
     const value = {
         aToken, setAToken,
@@ -199,7 +310,11 @@ const AdminContextProvider = (props) => {
         confirmPayment,
         getDoctorDetails,
         deleteDoctor,
-        adminUpdateDoctor,
+        updateDoctor,
+        getAllUsers,
+        getUserDetails,
+        deleteUser,
+        updateUser
     };
 
     return (

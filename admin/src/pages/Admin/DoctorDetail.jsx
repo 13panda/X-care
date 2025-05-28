@@ -7,7 +7,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 const DoctorDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getDoctorDetails, deleteDoctor, adminUpdateDoctor } = useContext(AdminContext);
+    const { getDoctorDetails, deleteDoctor, updateDoctor, backendUrl, dToken } = useContext(AdminContext);
 
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
@@ -23,6 +23,8 @@ const DoctorDetail = () => {
         email: '',
     });
 
+    const [image, setImage] = useState(null);
+
     useEffect(() => {
         const fetchDoctor = async () => {
             try {
@@ -37,6 +39,8 @@ const DoctorDetail = () => {
                         fees: data.doctor.fees !== undefined && data.doctor.fees !== null ? String(data.doctor.fees) : '',
                         email: data.doctor.email || '',
                     });
+                    setImage(null);
+                    console.log('Doctor data:', data.doctor);
                 } else {
                     toast.error('Không tìm thấy bác sĩ.');
                 }
@@ -52,7 +56,6 @@ const DoctorDetail = () => {
     const handleDelete = async () => {
         try {
             await deleteDoctor(id);
-            toast.success('Xoá bác sĩ thành công');
             navigate('/doctor-list');
         } catch (error) {
             console.error('Lỗi khi xoá bác sĩ:', error);
@@ -64,15 +67,22 @@ const DoctorDetail = () => {
     const handleConfirmEdit = async () => {
         try {
             const updatedData = {
-                ...editForm,
-                fees: Number(editForm.fees),
+                name: editForm.name,
+                email: editForm.email,
+                speciality: editForm.speciality,
+                degree: editForm.degree,
+                fees: editForm.fees ? Number(editForm.fees) : 0,
             };
-            await adminUpdateDoctor(id, updatedData);
-            toast.success('Cập nhật thành công');
+            if (image) updatedData.image = image;
+
+            await updateDoctor(id, updatedData);
+
             const data = await getDoctorDetails(id);
             if (data && data.doctor) {
+                toast.success('Cập nhật thông tin thành công'); 
                 setDoctor(data.doctor);
                 setShowEditModal(false);
+                setImage(null);
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật bác sĩ:', error);
@@ -80,6 +90,7 @@ const DoctorDetail = () => {
         }
         setShowConfirmEdit(false);
     };
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,7 +115,7 @@ const DoctorDetail = () => {
                 <div className="flex items-center gap-6">
                     <img
                         className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-blue-500 shadow-lg"
-                        src={doctor.image}
+                        src={image ? URL.createObjectURL(image) : doctor.image}
                         alt="avatar"
                     />
                     <div>
@@ -134,7 +145,7 @@ const DoctorDetail = () => {
                     <ul className="grid gap-4 sm:grid-cols-2">
                         {appointments.map((app) => (
                             <li key={app._id} className="p-4 rounded-xl border border-gray-200 shadow-sm bg-gray-50">
-                                <p><strong className="text-gray-600">Ngày:</strong> {new Date(app.appointmentDate).toLocaleDateString()}</p>
+                                <p><strong className="text-gray-600">Ngày:</strong> {app.appointmentDate && !isNaN(new Date(app.appointmentDate)) ? new Date(app.appointmentDate).toLocaleDateString() : 'Không xác định'}</p>
                                 <p><strong className="text-gray-600">Giờ:</strong> {app.slotTime}</p>
                                 <p className="flex items-center gap-2">
                                     <strong className="text-gray-600">Trạng thái:</strong>
@@ -158,20 +169,31 @@ const DoctorDetail = () => {
                         <h3 className="text-xl font-semibold text-blue-800 mb-4 border-b pb-2">Chỉnh sửa bác sĩ</h3>
                         <div className="space-y-4">
                             {['name', 'speciality', 'degree', 'fees', 'email'].map((field) => (
-                                <div key={field}>
-                                    <label className="block text-sm font-medium text-gray-700">{field === 'name' ? 'Tên' : field === 'speciality' ? 'Chuyên khoa' : field === 'degree' ? 'Bằng cấp' : field === 'fees' ? 'Phí khám' : 'Email'}</label>
+                                <label key={field} className="block">
+                                    <span className="text-gray-700 font-medium capitalize">{field === 'fees' ? 'Phí khám' : field}</span>
                                     <input
-                                        type={field === 'fees' ? 'number' : field === 'email' ? 'email' : 'text'}
+                                        type={field === 'fees' ? 'number' : 'text'}
                                         name={field}
                                         value={editForm[field]}
                                         onChange={handleInputChange}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                                     />
-                                </div>
+                                </label>
                             ))}
-                            <div className="flex justify-end gap-4 pt-4">
-                                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Huỷ</button>
-                                <button onClick={() => setShowConfirmEdit(true)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Lưu thay đổi</button>
+
+                            <div className="flex justify-end gap-4 mt-6">
+                                <button
+                                    onClick={() => setShowEditModal(false)}
+                                    className="px-4 py-2 rounded-xl border border-gray-400 hover:bg-gray-100 transition"
+                                >
+                                    Huỷ
+                                </button>
+                                <button
+                                    onClick={() => setShowConfirmEdit(true)}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition"
+                                >
+                                    Lưu thay đổi
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -180,18 +202,18 @@ const DoctorDetail = () => {
 
             <ConfirmDialog
                 isOpen={showConfirmEdit}
-                onClose={() => setShowConfirmEdit(false)}
-                onConfirm={handleConfirmEdit}
                 title="Xác nhận cập nhật"
-                message="Bạn có chắc chắn muốn cập nhật thông tin bác sĩ này không?"
+                message="Bạn có chắc chắn muốn cập nhật thông tin bác sĩ không?"
+                onConfirm={handleConfirmEdit}
+                onCancel={() => setShowConfirmEdit(false)}
             />
 
             <ConfirmDialog
                 isOpen={showDeleteDialog}
-                onClose={() => setShowDeleteDialog(false)}
+                title="Xác nhận xoá"
+                message="Bạn có chắc chắn muốn xoá bác sĩ này không? Hành động không thể hoàn tác."
                 onConfirm={handleDelete}
-                title="Xoá bác sĩ"
-                message="Bạn có chắc chắn muốn xoá bác sĩ này không? Hành động này không thể hoàn tác."
+                onCancel={() => setShowDeleteDialog(false)}
             />
         </div>
     );

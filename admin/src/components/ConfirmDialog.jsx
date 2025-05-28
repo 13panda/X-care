@@ -5,7 +5,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-[9999]">
             <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg">
                 <h2 className="text-xl font-semibold mb-4">{title}</h2>
 

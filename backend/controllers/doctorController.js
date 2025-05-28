@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import appointmentModel from "../models/appointmentModel.js";
 import User from "../models/userModel.js";
 
-const changeAvailablity = async (req, res) => {
+const changeAvailability = async (req, res) => {
     try {
         const { docId } = req.body; // Lấy docId từ request body
 
@@ -17,7 +17,7 @@ const changeAvailablity = async (req, res) => {
         // Thay đổi trạng thái availability
         await doctorModel.findByIdAndUpdate(docId, { available: !docData.available });
 
-        return res.json({ success: true, message: 'Availability Changed' });
+        return res.json({ success: true, message: 'Đã sửa đổi trạng thái' });
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message });
@@ -259,4 +259,4 @@ const requestWorkingSchedule = async (req, res) => {
 };
 
 
-export { changeAvailablity, doctorList, loginDoctor, appointmentsDoctor, getDoctorProfile, updateDoctorProfile, cancelAppointment, requestWorkingSchedule };
+export { changeAvailability, doctorList, loginDoctor, appointmentsDoctor, getDoctorProfile, updateDoctorProfile, cancelAppointment, requestWorkingSchedule };

@@ -285,6 +285,22 @@ const requestPayment = async (req, res) => {
 }
 
 
+// API to get user's paid appointments
+const getPaidAppointments = async (req, res) => {
+    try {
+        const userId = req.userId
+
+        const appointments = await appointmentModel.find({
+            userId,
+            paymentStatus: 'confirmed'
+        })
+
+        res.json({ success: true, appointments })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 
 export {
     registerUser,
@@ -293,7 +309,8 @@ export {
     updateProfile,
     bookAppointment,
     listAppointment,
-    cancelAppointment, 
+    cancelAppointment,
     deleteAppointment,
-    requestPayment
+    requestPayment,
+    getPaidAppointments
 }

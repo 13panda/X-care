@@ -59,7 +59,10 @@ const Doctors = () => {
                             <div
                                 key={index}
                                 onClick={() => navigate(`/appointment/${item._id}`)}
-                                className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-transform hover:-translate-y-2 cursor-pointer"
+                                className={`bg-white border border-gray-200 rounded-xl overflow-hidden shadow-md transition-transform cursor-pointer
+                hover:shadow-lg hover:-translate-y-2
+                ${item.available ? '' : 'opacity-70 cursor-not-allowed'}`}
+                                style={{ pointerEvents: item.available ? 'auto' : 'none' }}
                             >
                                 <img
                                     src={item.image}
@@ -67,9 +70,14 @@ const Doctors = () => {
                                     className="w-full h-72 object-cover object-top rounded-t-xl"
                                 />
                                 <div className="p-4 space-y-1.5">
-                                    <div className="flex items-center gap-2 text-sm text-green-600">
-                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                        <span>Available</span>
+                                    <div
+                                        className="flex items-center gap-2 text-sm"
+                                        style={{ color: item.available ? '#16a34a' : '#6b7280' }}
+                                    >
+                                        <span
+                                            className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-gray-400'}`}
+                                        ></span>
+                                        <span>{item.available ? 'Available' : 'Not Available'}</span>
                                     </div>
                                     <p className="text-gray-900 text-lg font-semibold">{item.name}</p>
                                     <p className="text-gray-600 text-sm">{item.speciality}</p>
@@ -77,6 +85,7 @@ const Doctors = () => {
                             </div>
                         ))
                     }
+
                 </div>
             </div>
         </div>

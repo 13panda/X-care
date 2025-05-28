@@ -14,7 +14,7 @@ const TopDoctors = () => {
 
             {/* Grid hiển thị doctor */}
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-6 px-4 sm:px-0'>
-                {doctors.slice(0, 10).map((item, index) => (
+                {doctors.slice(0, 8).map((item, index) => (
                     <div
                         onClick={() => {navigate(`/appointment/${item._id}`)}}
                         key={index}

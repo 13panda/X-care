@@ -21,7 +21,7 @@ const Dashboard = () => {
                 {[ 
                     { icon: assets.doctor_icon, label: "Bác sĩ", count: dashData.doctors },
                     { icon: assets.appointments_icon, label: "Cuộc hẹn", count: dashData.appointments },
-                    { icon: assets.patients_icon, label: "Bệnh nhân", count: dashData.patients },
+                    { icon: assets.patients_icon, label: "Người dùng", count: dashData.patients },
                 ].map((card, index) => (
                     <div key={index} className='flex items-center gap-4 bg-white p-6 rounded-2xl shadow-md min-w-[200px] hover:scale-105 transition-transform duration-300'>
                         <img className='w-12' src={card.icon} alt="" />

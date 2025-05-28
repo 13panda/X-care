@@ -32,7 +32,7 @@ const AllAppointments = () => {
 
                 {/* Danh sách có scroll riêng */}
                 <div className='max-h-[70vh] overflow-y-auto'>
-                    {appointments.map((item, index) => (
+                    {appointments.filter(item => item.userData && item.docData).map((item, index) => (
                         <div
                             key={index}
                             className='grid grid-cols-[0.5fr_2.5fr_1fr_3fr_3fr_1fr_1fr] items-center py-4 px-6 border-b text-gray-700 hover:bg-gray-50 transition-all duration-150'

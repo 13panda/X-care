@@ -171,6 +171,7 @@ const adminDashboard = async (req, res) => {
     }
 }
 
+
 // controllers/adminController.js
 const confirmPayment = async (req, res) => {
     try {
@@ -272,9 +273,9 @@ const deleteDoctor = async (req, res) => {
 };
 
 // Admin: Cập nhật thông tin bác sĩ
-const adminUpdateDoctor = async (req, res) => {
+const updateDoctor = async (req, res) => {
     try {
-        const docId = req.docId;
+        const docId = req.params.id;
 
         const {
             name,
@@ -295,6 +296,7 @@ const adminUpdateDoctor = async (req, res) => {
             about,
             fees,
             email,
+            address
         };
 
         if (address) {
@@ -327,6 +329,77 @@ const adminUpdateDoctor = async (req, res) => {
     }
 };
 
+// API get all user
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({}).select('-password');
+        res.json({ success: true, users });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ success: false, message: 'Lỗi khi lấy danh sách người dùng' });
+    }
+};
+
+// API to get User detail
+const getUserDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await userModel.findById(id).select('-password');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi lấy thông tin người dùng' });
+    }
+};
+
+// API to update user
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, phone, gender, address } = req.body;
+
+        const updatedUser = await userModel.findByIdAndUpdate(
+            id,
+            { name, email, phone, gender, address },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+
+        res.json({ success: true, message: 'Cập nhật người dùng thành công', user: updatedUser });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật người dùng' });
+    }
+};
+
+
+// API to delete user
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await userModel.findById(id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+
+        await userModel.findByIdAndDelete(id);
+        res.json({ success: true, message: 'Xóa người dùng thành công' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server khi xóa người dùng' });
+    }
+};
+
+
 
 export {
     addDoctor,
@@ -339,5 +412,9 @@ export {
     approveWorkingSchedule,
     getDoctorDetails,
     deleteDoctor,
-    adminUpdateDoctor
+    updateDoctor,
+    getAllUsers,
+    getUserDetails,
+    updateUser,
+    deleteUser
 }

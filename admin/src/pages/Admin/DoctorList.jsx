@@ -4,8 +4,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const DoctorList = () => {
-    // Lấy các biến và hàm từ AdminContext
-    const { doctors, aToken, getAllDoctors, changeAvailablity, getDoctorDetails } = useContext(AdminContext);
+    const { doctors, aToken, getAllDoctors, changeAvailability, getDoctorDetails } = useContext(AdminContext);
 
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
@@ -16,7 +15,7 @@ const DoctorList = () => {
         const fetchDoctors = async () => {
             if (aToken) {
                 try {
-                    await getAllDoctors(); // Gọi hàm lấy danh sách bác sĩ
+                    await getAllDoctors();
                 } catch (error) {
                     toast.error('Lấy danh sách bác sĩ thất bại');
                 }
@@ -25,7 +24,6 @@ const DoctorList = () => {
         fetchDoctors();
     }, [aToken, getAllDoctors]);
 
-    // Hàm chuyển trang xem chi tiết bác sĩ khi bấm nút
     const handleSeeDetails = (doctorId) => {
         navigate(`/doctors-detail/${doctorId}`);
     };
@@ -51,9 +49,9 @@ const DoctorList = () => {
 
                             <div className="flex items-center gap-2 mt-3">
                                 <input
-                                    onChange={() => changeAvailablity(item._id)}
                                     type="checkbox"
                                     checked={item.available}
+                                    onChange={() => changeAvailability(item._id)} 
                                     className="w-4 h-4 rounded-full accent-blue-500 border-2 border-gray-300"
                                 />
                                 <span className="text-base text-gray-600">Sẵn Sàng</span>
@@ -62,8 +60,8 @@ const DoctorList = () => {
                             <button
                                 onClick={() => handleSeeDetails(item._id)}
                                 className="mt-6 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md
-                hover:bg-blue-700 hover:shadow-lg transition-colors duration-300 ease-in-out
-                focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    hover:bg-blue-700 hover:shadow-lg transition-colors duration-300 ease-in-out
+                                    focus:outline-none focus:ring-2 focus:ring-blue-400"
                             >
                                 Xem chi tiết
                             </button>
