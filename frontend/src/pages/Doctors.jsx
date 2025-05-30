@@ -31,7 +31,7 @@ const Doctors = () => {
 
     return (
         <div className="px-4 sm:px-8 py-6">
-            <p className="text-gray-700 text-lg font-semibold mb-4">Browse through doctors by specialty</p>
+            <p className="text-gray-700 text-lg font-semibold mb-4">Danh sách bác sĩ theo chuyên Khoa</p>
             <div className="flex flex-col sm:flex-row items-start gap-6">
                 {/* Filter list */}
                 <div className="flex flex-col gap-3 text-sm text-gray-700 min-w-[200px] w-full sm:w-auto">
@@ -77,7 +77,7 @@ const Doctors = () => {
                                         <span
                                             className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-gray-400'}`}
                                         ></span>
-                                        <span>{item.available ? 'Available' : 'Not Available'}</span>
+                                        <span>{item.available ? 'Đang hoạt động' : 'Not Available'}</span>
                                     </div>
                                     <p className="text-gray-900 text-lg font-semibold">{item.name}</p>
                                     <p className="text-gray-600 text-sm">{item.speciality}</p>

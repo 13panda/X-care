@@ -40,7 +40,7 @@ const TopDoctors = () => {
                     scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 className='bg-blue-50 text-gray-900 px-10 py-3 rounded-full mt-10 hover:bg-blue-100 transition'>
-                View More Doctors
+                Xem thêm
             </button>
         </div>
     )

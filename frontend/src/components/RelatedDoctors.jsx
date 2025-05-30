@@ -20,8 +20,8 @@ const RelatedDoctors = ({speciality, docId}) => {
     return (
         <div className='flex flex-col items-center gap-4 my-16 text-gray-900 md:mx-10'>
             {/* Tiêu đề */}
-            <h1 className='text-3xl font-semibold text-center'>Top Doctors to Book</h1>
-            <p className='sm:w-1/3 text-center text-gray-500 text-sm'>Simply browse through our extensive list of trusted doctors</p>
+            <h1 className='text-3xl font-semibold text-center'>Danh sách các bác sĩ liên quan</h1>
+            <p className='sm:w-1/3 text-center text-gray-500 text-sm'>Đội ngũ các bác sĩ chuyên khoa hàng đầu của của chúng tôi</p>
 
             {/* Grid hiển thị doctor */}
             <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-6 px-4 sm:px-0'>
@@ -36,7 +36,7 @@ const RelatedDoctors = ({speciality, docId}) => {
                             <div className='p-4'>
                                 <div className='flex items-center gap-2 text-sm text-green-500 mb-1'>
                                     <span className='w-2 h-2 bg-green-500 rounded-full'></span>
-                                    <span>Available</span>
+                                    <span>Đang hoạt động</span>
                                 </div>
                                 <p className='text-gray-900 text-lg font-semibold'>{item.name}</p>
                                 <p className='text-gray-600 text-sm'>{item.speciality}</p>
@@ -44,7 +44,7 @@ const RelatedDoctors = ({speciality, docId}) => {
                         </div>
                     ))
                 ) : (
-                    <p className='text-center text-gray-500'>No related doctors available</p>  // Hiển thị thông báo nếu không có bác sĩ
+                    <p className='text-center text-gray-500'>Không có bác sĩ liên quan nào khả dụng</p>  // Hiển thị thông báo nếu không có bác sĩ
                 )}
             </div>
 
@@ -55,7 +55,7 @@ const RelatedDoctors = ({speciality, docId}) => {
                     scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 className='bg-blue-50 text-gray-900 px-10 py-3 rounded-full mt-10 hover:bg-blue-100 transition'>
-                View More Doctors
+                Xem thêm
             </button>
         </div>
     )
