@@ -81,7 +81,7 @@ const Sidebar = () => {
                             `flex items-center gap-4 py-3.5 px-8 md:min-w-72 transition-colors duration-200 
                             ${isActive ? 'bg-[#EEF0FF] border-r-4 border-primary text-primary font-medium' : 'hover:bg-gray-100 hover:scale-105 transition-transform duration-200'}`
                         }
-                        to={'/calendar-doctors'}
+                        to={'/record-medical'}
                     >
                         <FiCalendar className="w-5 h-5" />
                         <p className='text-sm'>Hồ sơ bệnh án</p>

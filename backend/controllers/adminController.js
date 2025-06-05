@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from "../models/doctorModel.js"
 import jwt from 'jsonwebtoken'
 import appointmentModel from "../models/appointmentModel.js"
+import diagnosisModel from "../models/diagnosisModel.js";
 import userModel from "../models/userModel.js"
 
 // API for adding doctor
@@ -399,6 +400,59 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const getDiagnosedRecords = async (req, res) => {
+    try {
+        const diagnosedList = await diagnosisModel.find().populate("appointmentId");
+
+        // Chuyển sang danh sách đã hợp nhất thông tin người dùng
+        const results = await Promise.all(diagnosedList.map(async (diag) => {
+            const appointment = diag.appointmentId;
+            const user = await userModel.findById(appointment.userId);
+
+            return {
+                _id: appointment._id,
+                slotDate: appointment.slotDate,
+                slotTime: appointment.slotTime,
+                userData: {
+                    name: user?.name || "Không rõ",
+                    image: user?.image || null,
+                    dob: user?.dob || null
+                }
+            };
+        }));
+
+        res.status(200).json({ success: true, data: results });
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách hồ sơ đã chẩn đoán:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Xem chi tiết chẩn đoán
+
+const getDiagnosisByAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        if (!appointmentId) {
+            return res.status(400).json({ success: false, message: "Thiếu appointmentId" });
+        }
+
+        // Tìm bản ghi chẩn đoán theo appointmentId
+        const diagnosis = await diagnosisModel.findOne({ appointmentId });
+
+        if (!diagnosis) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy chẩn đoán cho cuộc hẹn này" });
+        }
+
+        // Trả về kết quả
+        return res.status(200).json({ success: true, diagnosis });
+    } catch (error) {
+        console.error('Lỗi khi lấy chẩn đoán:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 
 
 export {
@@ -416,5 +470,7 @@ export {
     getAllUsers,
     getUserDetails,
     updateUser,
-    deleteUser
+    deleteUser,
+    getDiagnosedRecords,
+    getDiagnosisByAppointment
 }

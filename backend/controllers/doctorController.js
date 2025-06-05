@@ -361,6 +361,79 @@ const checkDiagnosis = async (req, res) => {
     }
 }
 
+const updateDiagnosis = async (req, res) => {
+    try {
+        const { diagnosisId } = req.params;
+        const { symptoms, diagnosis, treatments, medications, notes } = req.body;
+
+        if (!diagnosisId) {
+            return res.status(400).json({ success: false, message: "Thiếu diagnosisId" });
+        }
+
+        if (!symptoms || !diagnosis || !treatments || !Array.isArray(medications) || medications.length === 0) {
+            return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc để cập nhật chẩn đoán" });
+        }
+
+        for (const med of medications) {
+            if (!med.dosage || !med.duration) {
+                return res.status(400).json({ success: false, message: "Mỗi thuốc phải có 'dosage' và 'duration'" });
+            }
+        }
+
+        const totalAmount = medications.reduce((sum, med) => sum + (med.price || 0), 0);
+
+        const updated = await diagnosisModel.findByIdAndUpdate(
+            diagnosisId,
+            {
+                symptoms,
+                diagnosis,
+                treatments,
+                medications,
+                notes: notes || '',
+                totalAmount
+            },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy chẩn đoán cần cập nhật" });
+        }
+
+        res.status(200).json({ success: true, message: "Cập nhật chẩn đoán thành công", diagnosis: updated });
+    } catch (error) {
+        console.error('Lỗi khi cập nhật chẩn đoán:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const deleteDiagnosis = async (req, res) => {
+    try {
+        const { diagnosisId } = req.params;
+
+        if (!diagnosisId) {
+            return res.status(400).json({ success: false, message: "Thiếu diagnosisId" });
+        }
+
+        const diagnosis = await diagnosisModel.findByIdAndDelete(diagnosisId);
+
+        if (!diagnosis) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy chẩn đoán để xoá" });
+        }
+
+        // Cập nhật trạng thái cuộc hẹn nếu cần thiết
+        await appointmentModel.findByIdAndUpdate(diagnosis.appointmentId, {
+            $unset: { diagnosisId: "" },
+            status: "pending"  // hoặc trạng thái khác tuỳ theo logic hệ thống
+        });
+
+        res.status(200).json({ success: true, message: "Xoá chẩn đoán thành công" });
+    } catch (error) {
+        console.error('Lỗi khi xoá chẩn đoán:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
 // Cập nhật trạng thái thanh toán
 const updatePaymentStatus = async (req, res) => {
     try {
@@ -428,5 +501,7 @@ export {
     getDiagnosisByAppointment,
     checkDiagnosis,
     updatePaymentStatus,
-    getConfirmedAppointmentsByDoctor
+    getConfirmedAppointmentsByDoctor,
+    updateDiagnosis, 
+    deleteDiagnosis
 };

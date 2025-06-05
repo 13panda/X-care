@@ -1,5 +1,5 @@
 import express from 'express';
-import { addDoctor, allDoctors, loginAdmin, appointmentsAdmin, appointmentCancel, adminDashboard, confirmPayment, approveWorkingSchedule, getDoctorDetails, deleteDoctor, getAllUsers, getUserDetails, updateUser, deleteUser, updateDoctor } from '../controllers/adminController.js';
+import { addDoctor, allDoctors, loginAdmin, appointmentsAdmin, appointmentCancel, adminDashboard, confirmPayment, approveWorkingSchedule, getDoctorDetails, deleteDoctor, getAllUsers, getUserDetails, updateUser, deleteUser, updateDoctor, getDiagnosedRecords, getDiagnosisByAppointment } from '../controllers/adminController.js';
 import upload from '../middlewares/multer.js';
 import authAdmin from '../middlewares/authAdmin.js';
 import { changeAvailability } from '../controllers/doctorController.js';
@@ -24,6 +24,10 @@ adminRouter.get('/doctor-list/:id', authAdmin, getDoctorDetails);
 adminRouter.get('/users', authAdmin, getAllUsers);
 adminRouter.get('/users/:id', authAdmin, getUserDetails);
 adminRouter.put('/users/:id', authAdmin, updateUser)
+
+adminRouter.get('/diagnosed-records', authAdmin, getDiagnosedRecords)
+adminRouter.get('/get-diagnosis/:appointmentId', authAdmin, getDiagnosisByAppointment)
+
 
 
 // DELETE

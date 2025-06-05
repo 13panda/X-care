@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
+import diagnosisModel from '../models/diagnosisModel.js'
 
 // API to register user 
 const registerUser = async (req, res) => {
@@ -348,6 +349,38 @@ const getPaidAppointments = async (req, res) => {
     }
 }
 
+
+// Lấy thông tin chẩn đoán
+const getDiagnosisByAppointmentForUser = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.userId;
+
+        if (!appointmentId) {
+            return res.status(400).json({ success: false, message: "Thiếu appointmentId" });
+        }
+
+        // Kiểm tra appointment có thuộc về user này không
+        const appointment = await appointmentModel.findOne({ _id: appointmentId, userId });
+
+        if (!appointment) {
+            return res.status(403).json({ success: false, message: "Không có quyền truy cập cuộc hẹn này" });
+        }
+
+        const diagnosis = await diagnosisModel.findOne({ appointmentId });
+
+        if (!diagnosis) {
+            return res.status(404).json({ success: false, message: "Chưa được chẩn đoán" });
+        }
+
+        res.status(200).json({ success: true, diagnosis });
+
+    } catch (error) {
+        console.error('Lỗi khi lấy chẩn đoán:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -358,5 +391,6 @@ export {
     cancelAppointment,
     deleteAppointment,
     requestPayment,
-    getPaidAppointments
+    getPaidAppointments,
+    getDiagnosisByAppointmentForUser
 }

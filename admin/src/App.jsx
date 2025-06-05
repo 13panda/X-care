@@ -9,7 +9,6 @@ import Dashboard from './pages/Admin/Dashboard';
 import AllAppointments from './pages/Admin/AllAppointments';
 import AddDoctor from './pages/Admin/AddDoctor';
 import DoctorList from './pages/Admin/DoctorList';
-import CalendarDoctor from './pages/Admin/CalendarDoctors';
 import { useDoctorContext } from './context/DoctorContext';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointment from './pages/Doctor/DoctorAppointment';
@@ -21,6 +20,8 @@ import UserDetail from './pages/Admin/UserDetail';
 import MedicalRecords from './pages/Doctor/MedicalRecords';
 import CreateDiagnosis from './pages/Doctor/CreateDiagnosis';
 import DiagnosisDetail from './pages/Doctor/DiagnosisDetail';
+import RecordMedical from './pages/Admin/RecordMedical';
+import RecordDetail from './pages/Admin/RecordDetail';
 
 const App = () => {
 
@@ -41,11 +42,13 @@ const App = () => {
           <Route path='/all-appointments' element={<AllAppointments />} />
           <Route path='/add-doctor' element={<AddDoctor />} />
           <Route path='/doctor-list' element={<DoctorList />} />
-          <Route path='/calendar-doctors' element={<CalendarDoctor />} />
           <Route path='/doctors-detail/:id' element={<DoctorDetail/>} />
 
           <Route path='/users' element={<UserList/>} />
           <Route path='/users-detail/:id' element={<UserDetail/>} />
+          <Route path='/record-medical' element={<RecordMedical />} />
+          <Route path='/record-detail/:appointmentId' element={<RecordDetail />} />
+
 
           {/* { DOCTOR ROUTE } */}
           <Route path='/doctor-dashboard' element={<DoctorDashboard />} />

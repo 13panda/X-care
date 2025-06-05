@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDoctorContext } from '../../context/DoctorContext';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 // React Icons
 import { MdDelete, MdAddCircleOutline } from 'react-icons/md';

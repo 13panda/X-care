@@ -2,6 +2,17 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import {
+    Thermometer,
+    ClipboardCheck,
+    Syringe,
+    FileText,
+    Pill,
+    DollarSign,
+    Clock,
+    X,
+    CreditCard
+} from 'lucide-react';
 import dayjs from 'dayjs'
 
 const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
@@ -39,33 +50,31 @@ const AppointmentHistory = () => {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null)
 
-    // Đổi sang dùng dayjs để format ngày tháng
+    const [diagnosisData, setDiagnosisData] = useState(null)
+    const [showDiagnosis, setShowDiagnosis] = useState(false)
+
     const slotDateFormat = (slotDate) => {
         if (!slotDate) return 'Ngày không hợp lệ'
 
-        // Nếu slotDate là chuỗi dạng "4_6_2025"
         if (typeof slotDate === 'string' && slotDate.includes('_')) {
             const parts = slotDate.split('_')
             if (parts.length === 3) {
                 let [day, month, year] = parts
-                // Thêm số 0 nếu cần để ngày, tháng có 2 chữ số
                 if (day.length === 1) day = '0' + day
                 if (month.length === 1) month = '0' + month
 
-                const formatted = `${year}-${month}-${day}` // chuẩn ISO 8601
+                const formatted = `${year}-${month}-${day}`
                 const date = dayjs(formatted)
                 if (!date.isValid()) return 'Ngày không hợp lệ'
                 return date.format('ddd, D [tháng] M [năm] YYYY')
             }
         }
 
-        // Nếu slotDate đã là định dạng chuẩn
         const date = dayjs(slotDate)
         if (!date.isValid()) return 'Ngày không hợp lệ'
         return date.format('ddd, D [tháng] M [năm] YYYY')
     }
 
-    // Lấy danh sách lịch đã thanh toán
     const getUserAppointments = async () => {
         setLoading(true)
         try {
@@ -82,16 +91,31 @@ const AppointmentHistory = () => {
         }
     }
 
-    // Xóa lịch sử cuộc hẹn
+    const fetchDiagnosis = async (appointmentId) => {
+        try {
+            const { data } = await axios.get(
+                `${backendUrl}/api/user/get-diagnosis/${appointmentId}`,
+                { headers: { token } }
+            )
+
+            if (data.success) {
+                setDiagnosisData(data.diagnosis)
+                setShowDiagnosis(true)
+            } else {
+                toast.warn(data.message)
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Chưa có thông tin chẩn đoán")
+        }
+    }
+
     const deleteAppointment = async (appointmentId) => {
         try {
-            console.log("Đang xoá appointment:", appointmentId)
             const { data } = await axios.post(
                 backendUrl + '/api/user/delete-appointment',
                 { appointmentId },
                 { headers: { token } }
             )
-            console.log("Kết quả từ server:", data)
 
             if (data.success) {
                 toast.success(data.message)
@@ -106,19 +130,16 @@ const AppointmentHistory = () => {
         }
     }
 
-    // Mở confirm dialog xóa
     const openConfirm = (appointmentId) => {
         setSelectedAppointmentId(appointmentId)
         setConfirmOpen(true)
     }
 
-    // Xác nhận xóa
     const handleConfirm = () => {
         deleteAppointment(selectedAppointmentId)
         setConfirmOpen(false)
     }
 
-    // Hủy confirm dialog
     const handleCancel = () => {
         setConfirmOpen(false)
     }
@@ -173,13 +194,18 @@ const AppointmentHistory = () => {
                                 >
                                     Xóa lịch sử
                                 </button>
+                                <button
+                                    onClick={() => fetchDiagnosis(item._id)}
+                                    className="w-full sm:w-auto bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
+                                >
+                                    Xem lịch sử
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* ConfirmDialog cho xóa lịch sử */}
             <ConfirmDialog
                 isOpen={confirmOpen}
                 title="Xác nhận"
@@ -187,6 +213,105 @@ const AppointmentHistory = () => {
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
             />
+
+            {showDiagnosis && diagnosisData && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full overflow-auto max-h-[80vh]">
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                            <ClipboardCheck size={24} /> Thông tin chẩn đoán
+                        </h2>
+
+                        <div className="mb-3">
+                            <p className="font-semibold flex items-center gap-2">
+                                <Thermometer size={18} /> Triệu chứng:
+                            </p>
+                            <ul className="list-disc list-inside ml-6">
+                                {diagnosisData.symptoms?.map((symptom, index) => (
+                                    <li key={index}>{symptom}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="mb-3 flex items-center gap-2">
+                            <ClipboardCheck size={18} />
+                            <p><span className="font-semibold">Chẩn đoán:</span> {diagnosisData.diagnosis}</p>
+                        </div>
+
+                        <div className="mb-3">
+                            <p className="font-semibold flex items-center gap-2">
+                                <Syringe size={18} /> Chỉ định:
+                            </p>
+
+                            <ul className="list-disc list-inside ml-6">
+                                {diagnosisData.treatments?.map((treatment, index) => (
+                                    <li key={index}>{treatment}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="mb-3 flex items-center gap-2">
+                            <FileText size={18} />
+                            <p><span className="font-semibold">Ghi chú:</span> {diagnosisData.notes}</p>
+                        </div>
+
+                        <div className="mb-3">
+                            <p className="font-semibold flex items-center gap-2">
+                                <Pill size={18} /> Thuốc kê đơn:
+                            </p>
+                            <ul className="list-disc list-inside ml-6">
+                                {diagnosisData.medications?.map((med, index) => (
+                                    <li key={index}>
+                                        {med.name} - {med.dosage} - {med.frequency}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="mb-3 flex items-center gap-2">
+                            <DollarSign size={18} />
+                            <p><span className="font-semibold">Tổng tiền:</span> {diagnosisData.totalAmount?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                        </div>
+
+                        <div className="mb-3 flex items-center gap-2">
+                            <ClipboardCheck size={18} />
+                            <p>
+                                <span className="font-semibold">Trạng thái thanh toán:</span>{' '}
+                                <span className={`inline-block px-2 py-1 rounded text-sm font-medium
+                                    ${diagnosisData.paymentStatus === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                        diagnosisData.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-gray-100 text-gray-700'}`}>
+                                    {diagnosisData.paymentStatus}
+                                </span>
+                            </p>
+                        </div>
+
+                        <button
+                            disabled
+                            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded mt-2 cursor-not-allowed"
+                        >
+                            <CreditCard size={18} /> Thanh toán
+                        </button>
+
+                        <div className="mb-3 text-sm text-gray-600 flex flex-col gap-1 mt-4">
+                            <p className="flex items-center gap-2">
+                                <Clock size={16} />
+                                <span className="font-semibold">Ngày tạo:</span> {dayjs(diagnosisData.createdAt).format('DD/MM/YYYY HH:mm')}
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <Clock size={16} />
+                                <span className="font-semibold">Cập nhật lần cuối:</span> {dayjs(diagnosisData.updatedAt).format('DD/MM/YYYY HH:mm')}
+                            </p>
+                        </div>
+
+                        <button
+                            className="mt-6 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center gap-2"
+                            onClick={() => setShowDiagnosis(false)}
+                        >
+                            <X size={18} /> Đóng
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
