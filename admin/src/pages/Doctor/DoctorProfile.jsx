@@ -25,7 +25,6 @@ const DoctorProfile = () => {
             formData.append('degree', docData.degree);
             formData.append('experience', docData.experience);
             formData.append('about', docData.about);
-            formData.append('fees', docData.fees);
             formData.append('address', JSON.stringify(docData.address));
             if (image) formData.append('image', image);
 
@@ -99,7 +98,7 @@ const DoctorProfile = () => {
                         <EditableRow label="Specialty:" value={docData.speciality} isEdit={isEdit} onChange={val => setDocData(prev => ({ ...prev, speciality: val }))} fixedWidthInput="260px" />
                         <EditableRow label="Degree:" value={docData.degree} isEdit={isEdit} onChange={val => setDocData(prev => ({ ...prev, degree: val }))} fixedWidthInput="260px" />
                         <EditableRow label="Experience:" value={docData.experience} isEdit={isEdit} onChange={val => setDocData(prev => ({ ...prev, experience: val }))} fixedWidthInput="260px" />
-                        <EditableRow label="Fee:" value={docData.fees} isEdit={isEdit} onChange={val => setDocData(prev => ({ ...prev, fees: val }))} fixedWidthInput="260px" />
+                        {/* Phần Fee đã bị bỏ */}
                     </div>
                 </div>
 

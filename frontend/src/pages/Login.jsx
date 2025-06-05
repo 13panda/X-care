@@ -23,7 +23,9 @@ const Login = () => {
                 if (data.success) {
                     localStorage.setItem('token', data.token)
                     setToken(data.token)
+                    toast.success('Đăng ký thành công!')
                 } else {
+                    // Trường hợp API trả về success = false
                     toast.error(data.message)
                 }
             } else {
@@ -31,14 +33,23 @@ const Login = () => {
                 if (data.success) {
                     localStorage.setItem('token', data.token)
                     setToken(data.token)
+                    toast.success('Đăng nhập thành công!')
                 } else {
                     toast.error(data.message)
                 }
             }
         } catch (error) {
-            toast.error('Đã xảy ra lỗi: ' + error.message)
+            // Trường hợp lỗi do mạng hoặc lỗi server
+            if (error.response && error.response.data && error.response.data.message) {
+                // Lấy thông báo lỗi cụ thể từ backend
+                toast.error('Lỗi: ' + error.response.data.message)
+            } else {
+                // Lỗi không xác định hoặc lỗi ngoài mong đợi
+                toast.error('Đã xảy ra lỗi: ' + error.message)
+            }
         }
     }
+
 
     useEffect(() => {
         if (token) {
@@ -108,7 +119,7 @@ const Login = () => {
                             <span
                                 onClick={() => setState('Đăng nhập')}
                                 className="text-primary hover:underline cursor-pointer">
-                                Đăng nhập 
+                                Đăng nhập
                             </span>
                         </>
                     ) : (

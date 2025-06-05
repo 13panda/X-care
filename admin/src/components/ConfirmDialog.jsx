@@ -1,7 +1,7 @@
 // components/ConfirmDialog.js
 import React from 'react';
 
-const ConfirmDialog = ({ isOpen, title, message, onConfirm, onClose }) => {
+const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
     if (!isOpen) return null;
 
     return (
@@ -9,7 +9,6 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onClose }) => {
             <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-lg">
                 <h2 className="text-xl font-semibold mb-4">{title}</h2>
 
-                {/* Kiểm tra nếu message là string thì bọc trong <p>, nếu không thì render nguyên */}
                 {typeof message === 'string' ? (
                     <p className="mb-6 text-gray-700">{message}</p>
                 ) : (
@@ -18,10 +17,10 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onClose }) => {
 
                 <div className="flex justify-end gap-4">
                     <button
-                        onClick={onClose}
+                        onClick={onCancel} // ✅ Đã sửa từ onClose → onCancel
                         className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
                     >
-                        Hủy
+                        Huỷ
                     </button>
                     <button
                         onClick={onConfirm}
@@ -34,5 +33,6 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onClose }) => {
         </div>
     );
 };
+
 
 export default ConfirmDialog;

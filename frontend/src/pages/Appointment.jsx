@@ -9,22 +9,20 @@ import axios from 'axios';
 const Appointment = () => {
     const { docId } = useParams();
     const navigate = useNavigate();
-    const { doctors, formatPrice, backendUrl, token, getDoctorsData } = useContext(AppContext);
+    const { doctors, backendUrl, token, getDoctorsData } = useContext(AppContext);
 
-    const daysOfWeek = ['CN', 'THU', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
     const [docInfo, setDocInfo] = useState(null);
     const [docSlots, setDocSlots] = useState([]);
     const [slotIndex, setSlotIndex] = useState(0);
     const [slotTime, setSlotTime] = useState('');
 
-    // Lấy thông tin bác sĩ từ danh sách đã tải
     const fetchDocInfo = () => {
         const info = doctors.find(doc => doc._id === docId);
         setDocInfo(info);
     };
 
-    // Tạo lịch mặc định (10h-21h mỗi 30 phút)
     const getAvailableSlotsFallback = () => {
         const today = new Date();
         const allSlots = [];
@@ -38,12 +36,12 @@ const Appointment = () => {
 
             if (i === 0) {
                 startTime.setHours(Math.max(10, today.getHours() + 1));
-                startTime.setMinutes(today.getMinutes() > 30 ? 30 : 0);
+                startTime.setMinutes(today.getMinutes() > 30 ? 0 : 0);
             } else {
-                startTime.setHours(10, 0, 0, 0);
+                startTime.setHours(8, 0, 0, 0);
             }
 
-            endTime.setHours(21, 0, 0, 0);
+            endTime.setHours(19, 0, 0, 0);
 
             const timeSlots = [];
             while (startTime < endTime) {
@@ -60,7 +58,7 @@ const Appointment = () => {
                     timeSlots.push({ datetime: new Date(startTime), time: formatted });
                 }
 
-                startTime.setMinutes(startTime.getMinutes() + 30);
+                startTime.setHours(startTime.getHours() + 1);
             }
 
             allSlots.push(timeSlots);
@@ -69,9 +67,8 @@ const Appointment = () => {
         setDocSlots(allSlots);
     };
 
-    // Tạo lịch từ workingSchedule của bác sĩ
     const getAvailableSlotsFromSchedule = () => {
-        const schedule = docInfo.workingSchedule; // { "YYYY-MM-DD": ["09:00", "10:00", ...] }
+        const schedule = docInfo.workingSchedule;
         const today = new Date();
         const allSlots = [];
 
@@ -131,16 +128,13 @@ const Appointment = () => {
         }
     };
 
-    // Lấy thông tin bác sĩ
     useEffect(() => {
         fetchDocInfo();
     }, [doctors, docId]);
 
-    // Sau khi có docInfo thì tạo lịch
     useEffect(() => {
         if (docInfo) {
             const hasSchedule = docInfo.workingSchedule && Object.keys(docInfo.workingSchedule).length > 0;
-
             if (hasSchedule) {
                 getAvailableSlotsFromSchedule();
             } else {
@@ -151,7 +145,6 @@ const Appointment = () => {
 
     return docInfo && (
         <div>
-            {/* Doctor details */}
             {/* Doctor details */}
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div>
@@ -174,10 +167,6 @@ const Appointment = () => {
                         </p>
                         <p className='text-sm text-gray-500 max-w-[700px] mt-1'>{docInfo.about}</p>
                     </div>
-                    <p className='text-gray-500 font-medium mt-4'>
-                        {/* Sử dụng hàm formatPrice để hiển thị giá chuẩn */}
-                        Phí dịch vụ: <span className='text-gray-600'>{formatPrice(docInfo.fees)}</span>
-                    </p>
                 </div>
             </div>
 
@@ -197,10 +186,10 @@ const Appointment = () => {
                                         setSlotTime('');
                                     }}
                                     className={`text-center py-6 min-w-[64px] flex-shrink-0 rounded-full cursor-pointer 
-                                        ${slotIndex === index ? 'bg-primary text-white' : 'border border-gray-200'}`}
+                        ${slotIndex === index ? 'bg-primary text-white' : 'border border-gray-200'}`}
                                 >
-                                    <p>{daysOfWeek[item[0].datetime.getDay()]}</p>
-                                    <p>{item[0].datetime.getDate()}</p>
+                                    <p className='text-sm'>{daysOfWeek[item[0].datetime.getDay()]}</p>
+                                    <p className='text-sm'>{item[0].datetime.getDate()}</p>
                                 </div>
                             )
                         ))

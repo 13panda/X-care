@@ -48,7 +48,6 @@ const UserDetail = () => {
     const handleDelete = async () => {
         try {
             await deleteUser(id);
-            toast.success('Xoá người dùng thành công');
             navigate('/users');
         } catch (error) {
             console.error('Lỗi khi xoá người dùng:', error);

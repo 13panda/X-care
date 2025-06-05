@@ -12,6 +12,8 @@ const DoctorContextProvider = ({ children }) => {
     const [appointments, setAppointments] = useState([]);
     const [docData, setDocData] = useState(false);
 
+    const [diagnoses, setDiagnoses] = useState([]);
+
 
     const getAppointments = async () => {
         if (!dToken) return;
@@ -95,6 +97,66 @@ const DoctorContextProvider = ({ children }) => {
         }
     };
 
+    const createDiagnosis = async (diagnosisData) => {
+        try {
+            const { data } = await axios.post(
+                `${backendUrl}/api/doctor/diagnosis`,
+                diagnosisData,
+                { headers: { dToken } }
+            );
+
+            if (data.success) {
+                toast.success("Tạo chẩn đoán thành công!");
+                getAppointments(); // cập nhật lại danh sách lịch hẹn
+                return data.diagnosis;
+            } else {
+                toast.error(data.message || "Tạo chẩn đoán thất bại.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi tạo chẩn đoán.");
+        }
+    };
+
+    // Lấy danh sách chẩn đoán của bác sĩ
+    const getDoctorDiagnoses = async () => {
+        try {
+            const { data } = await axios.get(
+                `${backendUrl}/api/doctor/diagnoses`,
+                { headers: { dToken } }
+            );
+
+            if (data.success) {
+                setDiagnoses(data.diagnoses);
+            } else {
+                toast.error(data.message || "Không lấy được danh sách chẩn đoán.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi lấy danh sách chẩn đoán.");
+        }
+    };
+
+    // Cập nhật trạng thái thanh toán
+    const updatePaymentStatus = async (diagnosisId, paymentStatus) => {
+        try {
+            const { data } = await axios.put(
+                `${backendUrl}/api/doctor/diagnosis/${diagnosisId}/payment`,
+                { paymentStatus },
+                { headers: { dToken } }
+            );
+
+            if (data.success) {
+                toast.success("Cập nhật trạng thái thanh toán thành công!");
+                getDoctorDiagnoses(); // cập nhật danh sách chẩn đoán sau khi cập nhật
+            } else {
+                toast.error(data.message || "Không cập nhật được trạng thái.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Lỗi khi cập nhật trạng thái thanh toán.");
+        }
+    };
 
 
 
@@ -109,18 +171,25 @@ const DoctorContextProvider = ({ children }) => {
     }, [dToken]);
 
     const value = {
-        backendUrl,
-        dToken,
-        setDToken,
-        appointments,
-        setAppointments,
-        docData,
-        setDocData,
-        getAppointments,
-        getDoctorProfile,
-        cancelAppointment,
-        requestScheduleUpdate
-    };
+    backendUrl,
+    dToken,
+    setDToken,
+    appointments,
+    setAppointments,
+    docData,
+    setDocData,
+    getAppointments,
+    getDoctorProfile,
+    cancelAppointment,
+    requestScheduleUpdate,
+
+    // new
+    diagnoses,
+    getDoctorDiagnoses,
+    createDiagnosis,
+    updatePaymentStatus
+};
+
 
     return (
         <DoctorContext.Provider value={value}>

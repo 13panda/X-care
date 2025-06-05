@@ -7,6 +7,11 @@ import {
     updateDoctorProfile, 
     cancelAppointment,
     requestWorkingSchedule,
+    createDiagnosis,
+    getDiagnosisByAppointment,
+    checkDiagnosis,
+    updatePaymentStatus,
+    getConfirmedAppointmentsByDoctor
 } from '../controllers/doctorController.js'
 import authDoctor from '../middlewares/authDoctor.js'
 import authAdmin from '../middlewares/authAdmin.js'
@@ -22,6 +27,13 @@ doctorRouter.get('/profile', authDoctor, getDoctorProfile)
 doctorRouter.post('/update-profile', authDoctor, upload.single('image'), updateDoctorProfile)
 doctorRouter.post('/cancel-appointment', authDoctor, cancelAppointment)
 doctorRouter.post('/schedule-request', authDoctor, requestWorkingSchedule)
+
+doctorRouter.get('/medical-records', authDoctor, getConfirmedAppointmentsByDoctor)
+
+doctorRouter.post('/create-diagnosis/:id', authDoctor ,createDiagnosis);
+doctorRouter.get('/get-diagnosis/:appointmentId', authDoctor, getDiagnosisByAppointment)
+doctorRouter.get('/check-diagnosis/:appointmentId', authDoctor, checkDiagnosis)
+doctorRouter.patch('/diagnosis/:diagnosisId/payment', updatePaymentStatus);
 
 
 export default doctorRouter

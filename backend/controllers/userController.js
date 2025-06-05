@@ -9,36 +9,80 @@ import appointmentModel from '../models/appointmentModel.js'
 // API to register user 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password } = req.body
+        let { name, email, password } = req.body;
 
-        if (!name || !password || !email) {
-            return res.json({ success: false, message: "Missing Details" })
+        // Trim dữ liệu để tránh user nhập toàn khoảng trắng
+        name = name?.trim();
+        email = email?.trim().toLowerCase();
+
+        // 1. Kiểm tra dữ liệu đầu vào
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin." });
         }
 
+        // 2. Giới hạn độ dài name và email
+        if (name.length > 50) {
+            return res.status(400).json({ success: false, message: "Tên không được vượt quá 50 ký tự." });
+        }
+
+        if (email.length > 100) {
+            return res.status(400).json({ success: false, message: "Email không được vượt quá 100 ký tự." });
+        }
+
+        // 3. Kiểm tra tên không chứa ký tự đặc biệt (cho phép dấu tiếng Việt)
+        const nameRegex = /^[a-zA-ZÀ-ỹ\s.'-]+$/u;
+        if (!nameRegex.test(name)) {
+            return res.status(400).json({ success: false, message: "Tên chỉ được chứa chữ cái và khoảng trắng." });
+        }
+
+        // 4. Kiểm tra định dạng email
         if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Enter a valid email" })
+            return res.status(400).json({ success: false, message: "Email không hợp lệ." });
         }
 
-        if (password.length < 8) {
-            return res.json({ success: false, message: "Enter a strong password" })
+        const allowedDomains = ['.com', '.vn'];
+        const emailDomain = email.substring(email.lastIndexOf('.'));
+        if (!allowedDomains.includes(emailDomain)) {
+            return res.status(400).json({ success: false, message: "Email phải có đuôi .com hoặc .vn." });
         }
 
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
+        // 5. Kiểm tra mật khẩu mạnh
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/;
+        if (!strongPasswordRegex.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt."
+            });
+        }
 
-        const userData = { name, email, password: hashedPassword }
-        const newUser = new userModel(userData)
-        const user = await newUser.save()
+        // 6. Kiểm tra email đã tồn tại chưa
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email đã được sử dụng." });
+        }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
+        // 7. Hash mật khẩu và lưu vào DB
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        res.json({ success: true, token })
+        const newUser = new userModel({ name, email, password: hashedPassword });
+        const user = await newUser.save();
 
+        // 8. Tạo token JWT
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.status(201).json({ success: true, token });
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        if (error.code === 11000) {
+            return res.status(400).json({ success: false, message: "Email đã tồn tại." });
+        }
+        console.error(error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ. Vui lòng thử lại sau." });
     }
-}
+};
+
+
+
 
 // API for user login
 const loginUser = async (req, res) => {
@@ -117,11 +161,11 @@ const bookAppointment = async (req, res) => {
         const docData = await doctorModel.findById(docId).select('-password')
 
         if (!slotTime) {
-            return res.json({ success: false, message: "Choose Time" })
+            return res.json({ success: false, message: "Chọn giờ" })
         }
 
         if (!docData || !docData.available) {
-            return res.json({ success: false, message: 'Doctor not available' })
+            return res.json({ success: false, message: 'Bác sĩ không có sẵn' })
         }
 
         let slots_booked = docData.slots_booked || {}
@@ -145,7 +189,6 @@ const bookAppointment = async (req, res) => {
             docId,
             userData,
             docData: docDataForSave,
-            amount: docData.fees,
             slotTime,
             slotDate,
             date: Date.now()
@@ -156,7 +199,7 @@ const bookAppointment = async (req, res) => {
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
-        res.json({ success: true, message: 'Appointment Booked' })
+        res.json({ success: true, message: 'Lịch hẹn đã được thêm hãy xác nhận' })
 
     } catch (error) {
         console.log(error)
@@ -167,7 +210,10 @@ const bookAppointment = async (req, res) => {
 // API to get user's appointment list
 const listAppointment = async (req, res) => {
     try {
-        const appointments = await appointmentModel.find({ userId: req.userId })
+        const appointments = await appointmentModel.find({
+            userId: req.userId,
+            cancelled: { $ne: true } // bỏ các lịch bị hủy
+        })
         res.json({ success: true, appointments })
     } catch (error) {
         console.log(error)
@@ -217,19 +263,21 @@ const deleteAppointment = async (req, res) => {
         const userId = req.userId
 
         const appointmentData = await appointmentModel.findById(appointmentId)
-
         if (!appointmentData) {
             return res.json({ success: false, message: 'Appointment not found' })
         }
 
         if (appointmentData.userId.toString() !== userId.toString()) {
-            return res.json({ success: false, message: 'Unauthorized action' })
+            return res.status(403).json({ success: false, message: 'Unauthorized action' })
         }
 
         const { docId, slotDate, slotTime } = appointmentData
 
-        // Xoá slot khỏi doctor.slots_booked
         const doctorData = await doctorModel.findById(docId)
+        if (!doctorData) {
+            return res.json({ success: false, message: 'Doctor not found' })
+        }
+
         let slots_booked = doctorData.slots_booked
 
         if (slots_booked[slotDate]) {
@@ -239,19 +287,17 @@ const deleteAppointment = async (req, res) => {
             }
         }
 
-        // Cập nhật slot đã xoá
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
-
-        // Xoá cuộc hẹn khỏi DB
         await appointmentModel.findByIdAndDelete(appointmentId)
 
-        res.json({ success: true, message: 'Appointment deleted successfully' })
+        res.json({ success: true, message: 'Đã xóa lịch hẹn' })
 
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
 }
+
 
 // API to send payment request
 

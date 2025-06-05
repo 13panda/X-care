@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import appointmentModel from "../models/appointmentModel.js";
 import User from "../models/userModel.js";
+import diagnosisModel from "../models/diagnosisModel.js";
+import mongoose from 'mongoose';
 
 const changeAvailability = async (req, res) => {
     try {
@@ -220,9 +222,9 @@ const requestWorkingSchedule = async (req, res) => {
         maxDate.setDate(today.getDate() + 15); // Giới hạn 15 ngày tới
 
         const allowedTimes = [
-            '08:00', '09:00',  '10:00', '11:00',
-            '13:00', '14:00',  '15:00', 
-            '16:00', '17:00', 
+            '08:00', '09:00', '10:00', '11:00',
+            '13:00', '14:00', '15:00',
+            '16:00', '17:00',
         ];
 
         // Validate ngày và giờ
@@ -258,5 +260,173 @@ const requestWorkingSchedule = async (req, res) => {
     }
 };
 
+// Tạo chẩn đoán mới
+const createDiagnosis = async (req, res) => {
+    try {
+        console.log('=== Request Body ===');
+        console.log(req.body);
 
-export { changeAvailability, doctorList, loginDoctor, appointmentsDoctor, getDoctorProfile, updateDoctorProfile, cancelAppointment, requestWorkingSchedule };
+        const { appointmentId, symptoms, diagnosis, treatments, medications, notes } = req.body;
+
+        if (!appointmentId || !symptoms || !diagnosis || !treatments || !medications) {
+            return res.json({ success: false, message: "Thiếu thông tin bắt buộc để tạo chẩn đoán" });
+        }
+
+        if (!Array.isArray(medications) || medications.length === 0) {
+            return res.status(400).json({ success: false, message: "Danh sách thuốc không hợp lệ" });
+        }
+
+        // Kiểm tra từng thuốc có đủ trường bắt buộc
+        for (const med of medications) {
+            if (!med.dosage || !med.duration) {
+                return res.status(400).json({ success: false, message: "Mỗi thuốc phải có 'dosage' và 'duration'" });
+            }
+        }
+
+        const appointment = await appointmentModel.findById(appointmentId);
+        if (!appointment) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy cuộc hẹn' });
+        }
+
+        const totalAmount = medications.reduce((sum, med) => sum + (med.price || 0), 0);
+
+        const diagnosisData = {
+            appointmentId,
+            doctorId: appointment.docId,
+            patientId: appointment.userId,
+            symptoms,
+            diagnosis,
+            treatments,
+            medications,
+            notes: notes || '',
+            totalAmount,
+            dateCreated: Date.now()
+        };
+
+        const newDiagnosis = new diagnosisModel(diagnosisData);
+        await newDiagnosis.save();
+
+        appointment.status = 'completed';
+        appointment.diagnosisId = newDiagnosis._id;
+        await appointment.save();
+
+        console.log('Tạo chẩn đoán thành công:', newDiagnosis);
+        res.status(201).json({ success: true, message: "Tạo chẩn đoán thành công", diagnosis: newDiagnosis });
+    } catch (error) {
+        console.error('Lỗi khi tạo chẩn đoán:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
+const getDiagnosisByAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        if (!appointmentId) {
+            return res.status(400).json({ success: false, message: "Thiếu appointmentId" });
+        }
+
+        const diagnosis = await diagnosisModel.findOne({ appointmentId });
+
+        if (!diagnosis) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy chẩn đoán cho cuộc hẹn này" });
+        }
+
+        res.status(200).json({ success: true, diagnosis });
+    } catch (error) {
+        console.error('Lỗi khi lấy chẩn đoán:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const checkDiagnosis = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        if (!appointmentId) {
+            return res.status(400).json({ success: false, message: "Thiếu appointmentId" });
+        }
+
+        const diagnosis = await diagnosisModel.findOne({ appointmentId });
+
+        if (!diagnosis) {
+            return res.status(200).json({ success: true, hasDiagnosis: false });
+        }
+
+        return res.status(200).json({ success: true, hasDiagnosis: true });
+    } catch (error) {
+        console.error('Lỗi khi kiểm tra chẩn đoán:', error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+// Cập nhật trạng thái thanh toán
+const updatePaymentStatus = async (req, res) => {
+    try {
+        const { diagnosisId } = req.params;
+        const { paymentStatus } = req.body;
+        const docId = req.docId;
+
+        const diagnosis = await diagnosisModel.findById(diagnosisId);
+        if (!diagnosis) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy chẩn đoán' });
+        }
+
+        // Kiểm tra quyền
+        if (diagnosis.doctorId.toString() !== docId.toString()) {
+            return res.status(403).json({ success: false, message: 'Không có quyền cập nhật trạng thái thanh toán' });
+        }
+
+        diagnosis.paymentStatus = paymentStatus;
+        await diagnosis.save();
+
+        res.status(200).json({ success: true, diagnosis });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const getConfirmedAppointmentsByDoctor = async (req, res) => {
+    try {
+        const doctorId = req.docId; // ✅ lấy từ middleware
+
+        const confirmedAppointments = await appointmentModel.find({
+            docId: doctorId,
+            paymentStatus: 'confirmed',
+            cancelled: false,
+        });
+
+        res.status(200).json({
+            success: true,
+            data: confirmedAppointments,
+        });
+    } catch (error) {
+        console.error('❌ Lỗi lấy lịch hẹn đã xác nhận:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server khi lấy lịch hẹn đã xác nhận',
+        });
+    }
+};
+
+
+
+
+
+export {
+    changeAvailability,
+    doctorList,
+    loginDoctor,
+    appointmentsDoctor,
+    getDoctorProfile,
+    updateDoctorProfile,
+    cancelAppointment,
+    requestWorkingSchedule,
+    createDiagnosis,
+    getDiagnosisByAppointment,
+    checkDiagnosis,
+    updatePaymentStatus,
+    getConfirmedAppointmentsByDoctor
+};

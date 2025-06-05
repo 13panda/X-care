@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import dayjs from 'dayjs'
 
-// ConfirmDialog tái sử dụng cho xác nhận xóa lịch sử
 const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
     if (!isOpen) return null
 
@@ -39,16 +39,30 @@ const AppointmentHistory = () => {
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null)
 
-    const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
+    // Đổi sang dùng dayjs để format ngày tháng
     const slotDateFormat = (slotDate) => {
-        const dateArray = slotDate.split('_')
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
-    }
+        if (!slotDate) return 'Ngày không hợp lệ'
 
-    // Format tiền Việt Nam
-    const formatPrice = (price) => {
-        return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
+        // Nếu slotDate là chuỗi dạng "4_6_2025"
+        if (typeof slotDate === 'string' && slotDate.includes('_')) {
+            const parts = slotDate.split('_')
+            if (parts.length === 3) {
+                let [day, month, year] = parts
+                // Thêm số 0 nếu cần để ngày, tháng có 2 chữ số
+                if (day.length === 1) day = '0' + day
+                if (month.length === 1) month = '0' + month
+
+                const formatted = `${year}-${month}-${day}` // chuẩn ISO 8601
+                const date = dayjs(formatted)
+                if (!date.isValid()) return 'Ngày không hợp lệ'
+                return date.format('ddd, D [tháng] M [năm] YYYY')
+            }
+        }
+
+        // Nếu slotDate đã là định dạng chuẩn
+        const date = dayjs(slotDate)
+        if (!date.isValid()) return 'Ngày không hợp lệ'
+        return date.format('ddd, D [tháng] M [năm] YYYY')
     }
 
     // Lấy danh sách lịch đã thanh toán
@@ -57,7 +71,6 @@ const AppointmentHistory = () => {
         try {
             const { data } = await axios.get(backendUrl + '/api/user/appointments', { headers: { token } })
             if (data.success) {
-                // Lọc lấy các lịch có paymentStatus là 'confirmed' (đã thanh toán)
                 const paidAppointments = data.appointments.filter(item => item.paymentStatus === 'confirmed')
                 setAppointments(paidAppointments.reverse())
             }
@@ -72,11 +85,14 @@ const AppointmentHistory = () => {
     // Xóa lịch sử cuộc hẹn
     const deleteAppointment = async (appointmentId) => {
         try {
+            console.log("Đang xoá appointment:", appointmentId)
             const { data } = await axios.post(
                 backendUrl + '/api/user/delete-appointment',
                 { appointmentId },
                 { headers: { token } }
             )
+            console.log("Kết quả từ server:", data)
+
             if (data.success) {
                 toast.success(data.message)
                 getUserAppointments()
@@ -86,7 +102,7 @@ const AppointmentHistory = () => {
             }
         } catch (error) {
             console.error(error)
-            toast.error(error.message || "Lỗi khi xóa lịch sử")
+            toast.error(error.response?.data?.message || error.message || "Lỗi khi xóa lịch sử")
         }
     }
 
@@ -147,10 +163,6 @@ const AppointmentHistory = () => {
                                 <p className="mt-3 text-sm text-gray-700">
                                     <span className="font-semibold">Ngày & Giờ:</span>{' '}
                                     {slotDateFormat(item.slotDate)} || {item.slotTime}
-                                </p>
-                                <p className="mt-1 text-sm text-gray-700">
-                                    <span className="font-semibold">Chi phí:</span>{' '}
-                                    {item.docData?.fees != null ? formatPrice(item.docData.fees) : '0₫'}
                                 </p>
                             </div>
 

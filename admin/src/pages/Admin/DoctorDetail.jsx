@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AdminContext } from '../../context/AdminContext';
 import { toast } from 'react-toastify';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import dayjs from 'dayjs';
 
 const DoctorDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getDoctorDetails, deleteDoctor, updateDoctor, backendUrl, dToken } = useContext(AdminContext);
+    const { getDoctorDetails, deleteDoctor, updateDoctor } = useContext(AdminContext);
 
     const [doctor, setDoctor] = useState(null);
     const [appointments, setAppointments] = useState([]);
@@ -19,7 +20,6 @@ const DoctorDetail = () => {
         name: '',
         speciality: '',
         degree: '',
-        fees: '',
         email: '',
     });
 
@@ -36,11 +36,9 @@ const DoctorDetail = () => {
                         name: data.doctor.name || '',
                         speciality: data.doctor.speciality || '',
                         degree: data.doctor.degree || '',
-                        fees: data.doctor.fees !== undefined && data.doctor.fees !== null ? String(data.doctor.fees) : '',
                         email: data.doctor.email || '',
                     });
                     setImage(null);
-                    console.log('Doctor data:', data.doctor);
                 } else {
                     toast.error('Không tìm thấy bác sĩ.');
                 }
@@ -71,7 +69,6 @@ const DoctorDetail = () => {
                 email: editForm.email,
                 speciality: editForm.speciality,
                 degree: editForm.degree,
-                fees: editForm.fees ? Number(editForm.fees) : 0,
             };
             if (image) updatedData.image = image;
 
@@ -79,7 +76,7 @@ const DoctorDetail = () => {
 
             const data = await getDoctorDetails(id);
             if (data && data.doctor) {
-                toast.success('Cập nhật thông tin thành công'); 
+                toast.success('Cập nhật thông tin thành công');
                 setDoctor(data.doctor);
                 setShowEditModal(false);
                 setImage(null);
@@ -90,7 +87,6 @@ const DoctorDetail = () => {
         }
         setShowConfirmEdit(false);
     };
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -131,7 +127,6 @@ const DoctorDetail = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <InfoRow label="Phí khám" value={doctor.fees?.toLocaleString() + ' VND'} />
                 <InfoRow label="Chuyên khoa" value={doctor.speciality} />
                 <InfoRow label="Bằng cấp" value={doctor.degree} />
                 <InfoRow label="Email" value={doctor.email} />
@@ -145,7 +140,12 @@ const DoctorDetail = () => {
                     <ul className="grid gap-4 sm:grid-cols-2">
                         {appointments.map((app) => (
                             <li key={app._id} className="p-4 rounded-xl border border-gray-200 shadow-sm bg-gray-50">
-                                <p><strong className="text-gray-600">Ngày:</strong> {app.appointmentDate && !isNaN(new Date(app.appointmentDate)) ? new Date(app.appointmentDate).toLocaleDateString() : 'Không xác định'}</p>
+                                <p>
+                                    <strong className="text-gray-600">Ngày:</strong>{' '}
+                                    {dayjs(app.appointmentDate).isValid()
+                                        ? dayjs(app.appointmentDate).format('DD/MM/YYYY')
+                                        : 'Không xác định'}
+                                </p>
                                 <p><strong className="text-gray-600">Giờ:</strong> {app.slotTime}</p>
                                 <p className="flex items-center gap-2">
                                     <strong className="text-gray-600">Trạng thái:</strong>
@@ -168,11 +168,11 @@ const DoctorDetail = () => {
                     <div className="bg-white rounded-xl p-6 max-w-lg w-full overflow-y-auto max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-xl font-semibold text-blue-800 mb-4 border-b pb-2">Chỉnh sửa bác sĩ</h3>
                         <div className="space-y-4">
-                            {['name', 'speciality', 'degree', 'fees', 'email'].map((field) => (
+                            {['name', 'speciality', 'degree', 'email'].map((field) => (
                                 <label key={field} className="block">
-                                    <span className="text-gray-700 font-medium capitalize">{field === 'fees' ? 'Phí khám' : field}</span>
+                                    <span className="text-gray-700 font-medium capitalize">{field}</span>
                                     <input
-                                        type={field === 'fees' ? 'number' : 'text'}
+                                        type="text"
                                         name={field}
                                         value={editForm[field]}
                                         onChange={handleInputChange}

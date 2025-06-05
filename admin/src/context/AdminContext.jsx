@@ -141,7 +141,7 @@ const AdminContextProvider = (props) => {
                         app._id === appointmentId ? { ...app, paymentStatus: 'confirmed' } : app
                     )
                 );
-                toast.success('Payment confirmed successfully');
+                toast.success('Lịch hẹn đã được xác nhận');
             } else {
                 toast.error(data.message || 'Error confirming payment');
             }

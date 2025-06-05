@@ -11,7 +11,6 @@ const AddDoctor = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [experience, setExperience] = useState('1 Năm')
-    const [fees, setFees] = useState('')
     const [about, setAbout] = useState('')
     const [speciality, setSpeciality] = useState('Đa Khoa')
     const [degree, setDegree] = useState('')
@@ -33,7 +32,6 @@ const AddDoctor = () => {
             formData.append('email', email)
             formData.append('password', password)
             formData.append('experience', experience)
-            formData.append('fees', Number(fees))
             formData.append('about', about)
             formData.append('speciality', speciality)
             formData.append('degree', degree)
@@ -55,7 +53,6 @@ const AddDoctor = () => {
                 setAddress2('')
                 setAbout('')
                 setDegree('')
-                setFees('')
             } else {
                 toast.error(data.message)
             }
@@ -109,11 +106,6 @@ const AddDoctor = () => {
                                     <option key={i} value={`${i + 1} Năm`}>{i + 1} Năm</option>
                                 ))}
                             </select>
-                        </div>
-
-                        <div className='flex flex-col gap-1'>
-                            <p>Phí khám</p>
-                            <input onChange={(e) => setFees(e.target.value)} value={fees} className='p-2 border rounded-md shadow-sm' type="number" placeholder='Phí khám' required />
                         </div>
                     </div>
 

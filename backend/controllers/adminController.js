@@ -15,32 +15,32 @@ const addDoctor = async (req, res) => {
         console.log('\n=== File Data ===');
         console.log(req.file);
 
-        const { name, email, password, speciality, degree, experience, about, fees, address } = req.body;
+        const { name, email, password, speciality, degree, experience, about, address } = req.body;
 
-        //Checking for all data add doctor
+        // Kiểm tra dữ liệu đầu vào
         if (!name || !email || !password || !speciality || !degree || !experience || !about || !address) {
-            return res.json({ success: false, message: "Missing Details" })
+            return res.json({ success: false, message: "Missing Details" });
         }
 
-        // validating email format
+        // Kiểm tra định dạng email
         if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Please enter a valid email" })
+            return res.json({ success: false, message: "Please enter a valid email" });
         }
 
-        // validating strong password
+        // Kiểm tra độ mạnh của mật khẩu
         if (password.length < 8) {
-            return res.json({ success: false, message: "Please enter a strong password" })
+            return res.json({ success: false, message: "Please enter a strong password" });
         }
 
-        // hashing doctor password
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
+        // Hash mật khẩu
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        // upload image to cloudinary
+        // Upload ảnh lên Cloudinary
         const imageUpload = await cloudinary.uploader.upload(req.file.path, {
             folder: "doctors",
             resource_type: "image"
-        })
+        });
         console.log('Image uploaded to Cloudinary:', imageUpload.secure_url);
 
         const doctorData = {
@@ -52,22 +52,22 @@ const addDoctor = async (req, res) => {
             degree,
             experience,
             about,
-            fees,
             address: JSON.parse(address),
             date: Date.now()
-        }
+        };
 
-        const newDoctor = new doctorModel(doctorData)
-        await newDoctor.save()
+        const newDoctor = new doctorModel(doctorData);
+        await newDoctor.save();
 
         console.log('Doctor added successfully:', newDoctor);
-        res.json({ success: true, message: "Doctor added !!!" })
+        res.json({ success: true, message: "Thêm bác sĩ thành công !!!" });
 
     } catch (error) {
         console.error('Error:', error);
-        res.json({ success: false, message: error.message })
+        res.json({ success: false, message: error.message });
     }
-}
+};
+
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -139,7 +139,7 @@ const appointmentCancel = async (req, res) => {
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
-        res.json({ success: true, message: 'Appointment Cancelled' })
+        res.json({ success: true, message: 'Lịch hẹn đã được hủy' })
 
     } catch (error) {
         console.log(error)
@@ -189,7 +189,7 @@ const confirmPayment = async (req, res) => {
         // ✅ Đồng bộ với frontend: cập nhật paymentStatus
         appointment.paymentStatus = 'confirmed';
         await appointment.save();
-        res.json({ success: true, message: "Payment confirmed successfully" });
+        res.json({ success: true, message: "Lịch hẹn đã được xác nhận" });
     } catch (error) {
         console.error("Error confirming payment:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -228,7 +228,7 @@ const getDoctorDetails = async (req, res) => {
 
     try {
         // Tìm bác sĩ theo ID, chọn các trường cần thiết
-        const doctor = await doctorModel.findById(doctorId).select('name email speciality fees image');
+        const doctor = await doctorModel.findById(doctorId).select('name email speciality fees image degree');
 
         if (!doctor) {
             // Không tìm thấy bác sĩ trả về 404
@@ -322,7 +322,7 @@ const updateDoctor = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Doctor not found' });
         }
 
-        res.json({ success: true, message: 'Doctor profile updated successfully', doctor: updatedDoctor });
+        res.json({ success: true, doctor: updatedDoctor });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: error.message });

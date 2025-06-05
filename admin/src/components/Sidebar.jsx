@@ -9,7 +9,8 @@ import {
     FiUsers,
     FiCalendar,
     FiUser,
-    FiClipboard
+    FiClipboard,
+    FiFileText
 } from 'react-icons/fi';
 
 const Sidebar = () => {
@@ -83,7 +84,7 @@ const Sidebar = () => {
                         to={'/calendar-doctors'}
                     >
                         <FiCalendar className="w-5 h-5" />
-                        <p className='text-sm'>Lịch làm việc</p>
+                        <p className='text-sm'>Hồ sơ bệnh án</p>
                     </NavLink>
                 </ul>
             )}
@@ -120,7 +121,18 @@ const Sidebar = () => {
                         to={'/doctor-profile'}
                     >
                         <FiUser className="w-5 h-5" />
-                        <p className='hidden md:block text-sm'>Hồ sơ</p>
+                        <p className='hidden md:block text-sm'>Hồ sơ cá nhân</p>
+                    </NavLink>
+
+                    <NavLink
+                        className={({ isActive }) =>
+                            `flex items-center gap-4 py-3.5 px-8 md:min-w-72 transition-colors duration-200 
+                            ${isActive ? 'bg-[#EEF0FF] border-r-4 border-primary text-primary font-medium' : 'hover:bg-gray-100 hover:scale-105 transition-transform duration-200'}`
+                        }
+                        to={'/medical-records'}
+                    >
+                        <FiFileText className="w-5 h-5" />
+                        <p className='hidden md:block text-sm'>Hồ sơ bệnh án</p>
                     </NavLink>
 
                     <NavLink

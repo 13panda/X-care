@@ -10,7 +10,6 @@ const doctorSchema = new mongoose.Schema({
     experience: { type: String, required: true },
     about: { type: String, required: true },
     available: { type: Boolean, default: true },
-    fees: { type: String, required: true },
     address: { type: Object, required: true },
     date: { type: Date, default: Date.now },
     slots_booked: { type: Object, default: {} },
@@ -21,7 +20,18 @@ const doctorSchema = new mongoose.Schema({
     workingScheduleRequest: {
         type: Object,
         default: {}
-    }
+    },
+    diagnosisTemplates: [{
+        name: String,
+        description: String,
+        symptoms: [String],
+        treatments: [String],
+        medications: [{
+            name: String,
+            dosage: String,
+            duration: String
+        }]
+    }]
 }, { minimize: false });
 
 const doctorModel = mongoose.models.doctor || mongoose.model('doctor', doctorSchema);

@@ -5,7 +5,7 @@ import { assets } from '../../../../admin/src/assets/assets'
 
 const AllAppointments = () => {
     const { aToken, appointments, getAllAppointments, cancelAppointment, confirmPayment } = useContext(AdminContext)
-    const { calculateAge, slotDateFormat, currency } = useContext(AppContext)
+    const { calculateAge, slotDateFormat } = useContext(AppContext)
 
     useEffect(() => {
         if (aToken) {
@@ -20,13 +20,12 @@ const AllAppointments = () => {
             <div className='bg-white border rounded-xl shadow-md text-sm overflow-hidden'>
 
                 {/* Header cố định */}
-                <div className='grid grid-cols-[0.5fr_2.5fr_1fr_3fr_3fr_1fr_1fr] items-center py-3 px-6 border-b bg-gray-100 text-gray-700 font-medium sticky top-0 z-10'>
+                <div className='grid grid-cols-[0.5fr_2.5fr_1fr_3fr_3fr_1fr] items-center py-3 px-6 border-b bg-gray-100 text-gray-700 font-medium sticky top-0 z-10'>
                     <p>#</p>
                     <p>Bệnh nhân</p>
                     <p>Tuổi</p>
                     <p>Ngày & Giờ</p>
                     <p>Bác sĩ</p>
-                    <p>Phí</p>
                     <p>Trạng thái</p>
                 </div>
 
@@ -35,7 +34,7 @@ const AllAppointments = () => {
                     {appointments.filter(item => item.userData && item.docData).map((item, index) => (
                         <div
                             key={index}
-                            className='grid grid-cols-[0.5fr_2.5fr_1fr_3fr_3fr_1fr_1fr] items-center py-4 px-6 border-b text-gray-700 hover:bg-gray-50 transition-all duration-150'
+                            className='grid grid-cols-[0.5fr_2.5fr_1fr_3fr_3fr_1fr] items-center py-4 px-6 border-b text-gray-700 hover:bg-gray-50 transition-all duration-150'
                         >
                             <p>{index + 1}</p>
                             <div className='flex items-center gap-2'>
@@ -47,13 +46,11 @@ const AllAppointments = () => {
                                     ? `${calculateAge(item.userData.dob)}`
                                     : 'Không rõ'}
                             </p>
-
                             <p className='text-gray-600'>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>
                             <div className='flex items-center gap-2'>
                                 <img className='w-8 h-8 rounded-full object-cover border bg-gray-200' src={item.docData.image} alt="Bác sĩ" />
                                 <p>{item.docData.name}</p>
                             </div>
-                            <p className='text-gray-800 font-medium'>{currency} {item.amount}</p>
                             {item.cancelled ? (
                                 <p className='text-red-500 text-xs font-semibold'>Đã hủy</p>
                             ) : item.paymentStatus === 'pending' ? (
